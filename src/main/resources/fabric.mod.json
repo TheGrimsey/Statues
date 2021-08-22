@@ -20,6 +20,9 @@
   "entrypoints": {
     "main": [
       "net.thegrimsey.statues.Statues"
+    ],
+    "client": [
+      "net.thegrimsey.statues.StatuesClient"
     ]
   },
   "mixins": [
