@@ -1,0 +1,10 @@
+{
+    "statues.leftarm": "Left Arm",
+    "statues.rightarm": "Right Arm",
+    "statues.leftleg": "Left Leg",
+    "statues.rightleg": "Right Leg",
+
+    "statues.pitch": "Pitch: %d",
+    "statues.yaw": "Yaw: %d",
+    "statues.roll": "Roll: %d"
+}
