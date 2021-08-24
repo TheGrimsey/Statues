@@ -28,5 +28,7 @@ public class Statues implements ModInitializer {
 		Registry.register(Registry.BLOCK, STATUE_ID, STATUE_BLOCK);
 		Registry.register(Registry.ITEM, STATUE_ID, new BlockItem(STATUE_BLOCK, new FabricItemSettings().group(ItemGroup.DECORATIONS)));
 		STATUE_BLOCKENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(MODID, "statue_blockentity"), FabricBlockEntityTypeBuilder.create(StatueBlockEntity::new, STATUE_BLOCK).build(null));
+
+		StatueNetworking.registerNetworking();
 	}
 }

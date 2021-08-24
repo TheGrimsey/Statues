@@ -21,33 +21,50 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Quaternion;
+import net.minecraft.util.math.Vec3f;
 import net.thegrimsey.statues.Statues;
+import net.thegrimsey.statues.client.renderer.StatueRenderer;
 import net.thegrimsey.statues.client.screen.StatueScreenHandler;
+import net.thegrimsey.statues.util.StatueRotation;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public class StatueBlockEntity extends BlockEntity implements BlockEntityClientSerializable, ExtendedScreenHandlerFactory {
 
-    // These should be stored in radians once we finish debugging.
-    public float leftLegPitch = 0.f, leftLegYaw = 0.f, leftLegRoll = 0.f;
-    public float rightLegPitch = 0.f, rightLegYaw = 0.f, rightLegRoll = 0.f;
+    // Rotations of body parts.
+    public StatueRotation leftLeg;
+    public StatueRotation rightLeg;
 
-    public float leftArmPitch = 0.f, leftArmYaw = 0.f, leftArmRoll = 0.f;
-    public float rightArmPitch = 0.f, rightArmYaw = 0.f, rightArmRoll = 0.f;
+    public StatueRotation leftArm;
+    public StatueRotation rightArm;
 
-    public float headPitch = 0.f, headYaw = 0.f, headRoll = 0.f;
+    public StatueRotation head;
+    // Full body rotation.
     public float yaw = 0.f;
 
+    // Inventory
     final DefaultedList<ItemStack> heldItems;
     final DefaultedList<ItemStack> armorItems;
 
     UUID profileId;
     @Environment(EnvType.CLIENT)
-    public GameProfile profile = null;
+    GameProfile profile = null;
+    @Environment(EnvType.CLIENT)
+    float legLength;
 
     public StatueBlockEntity(BlockPos pos, BlockState state) {
         super(Statues.STATUE_BLOCKENTITY, pos, state);
+
+        leftLeg = new StatueRotation();
+        rightLeg = new StatueRotation();
+
+        leftArm = new StatueRotation();
+        rightArm = new StatueRotation();
+
+        head = new StatueRotation();
+
         heldItems = DefaultedList.ofSize(2, ItemStack.EMPTY);
         armorItems = DefaultedList.ofSize(4, ItemStack.EMPTY);
 
@@ -57,30 +74,37 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         armorItems.set(0, Items.LEATHER_BOOTS.getDefaultStack());
     }
 
+    public boolean editingFinished() {
+        return false;
+    }
+
+    public void recalculateLegLength() {
+        // LEFT LEG
+        Quaternion leftLegRot = new Quaternion(leftLeg.pitch, leftLeg.yaw, leftLeg.roll, false);
+        Vec3f down = Vec3f.NEGATIVE_Y.copy();
+        down.rotate(leftLegRot);
+        float leftDot = down.dot(Vec3f.NEGATIVE_Y);
+
+        // RIGHT LEG
+        Quaternion rightLegRot = new Quaternion(rightLeg.pitch, rightLeg.yaw, rightLeg.roll, false);
+        down.set(Vec3f.NEGATIVE_Y);
+        down.rotate(rightLegRot);
+        float rightDot = down.dot(Vec3f.NEGATIVE_Y);
+
+        // Straightest leg is base.
+        legLength = StatueRenderer.LEG_LENGTH * Math.max(leftDot, rightDot);
+    }
+
     @Override
     public void readNbt(NbtCompound nbt) {
         // LEGS
-        leftLegPitch = nbt.getFloat("leftLegPitch");
-        leftLegYaw = nbt.getFloat("leftLegYaw");
-        leftLegRoll = nbt.getFloat("leftLegRoll");
+        leftLeg = StatueRotation.readFromNbt(nbt, "leftLeg");
+        rightLeg = StatueRotation.readFromNbt(nbt, "rightLeg");
 
-        rightLegPitch = nbt.getFloat("rightLegPitch");
-        rightLegYaw = nbt.getFloat("rightLegYaw");
-        rightLegRoll = nbt.getFloat("rightLegRoll");
+        leftArm = StatueRotation.readFromNbt(nbt, "leftArm");
+        rightArm = StatueRotation.readFromNbt(nbt, "rightArm");
 
-        // ARMS
-        leftArmPitch = nbt.getFloat("leftArmPitch");
-        leftArmYaw = nbt.getFloat("leftArmYaw");
-        leftArmRoll = nbt.getFloat("leftArmRoll");
-
-        rightArmPitch = nbt.getFloat("rightArmPitch");
-        rightArmYaw = nbt.getFloat("rightArmYaw");
-        rightArmRoll = nbt.getFloat("rightArmRoll");
-
-        // HEAD
-        headPitch = nbt.getFloat("headPitch");
-        headYaw = nbt.getFloat("headYaw");
-        headRoll = nbt.getFloat("headRoll");
+        head = StatueRotation.readFromNbt(nbt, "head");
 
         // FULL BODY
         yaw = nbt.getFloat("yaw");
@@ -96,28 +120,13 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
-        // LEGS
-        nbt.putFloat("leftLegPitch", leftLegPitch);
-        nbt.putFloat("leftLegYaw", leftLegYaw);
-        nbt.putFloat("leftLegRoll", leftLegRoll);
+        nbt.put("leftLeg", leftLeg.toNbt());
+        nbt.put("rightLeg", rightLeg.toNbt());
 
-        nbt.putFloat("rightLegPitch", rightLegPitch);
-        nbt.putFloat("rightLegYaw", rightLegYaw);
-        nbt.putFloat("rightLegRoll", rightLegRoll);
+        nbt.put("leftArm", leftArm.toNbt());
+        nbt.put("rightArm", rightArm.toNbt());
 
-        // ARMS
-        nbt.putFloat("leftArmPitch", leftArmPitch);
-        nbt.putFloat("leftArmYaw", leftArmYaw);
-        nbt.putFloat("leftArmRoll", leftArmRoll);
-
-        nbt.putFloat("rightArmPitch", rightArmPitch);
-        nbt.putFloat("rightArmYaw", rightArmYaw);
-        nbt.putFloat("rightArmRoll", rightArmRoll);
-
-        // HEAD
-        nbt.putFloat("headPitch", headPitch);
-        nbt.putFloat("headYaw", headYaw);
-        nbt.putFloat("headRoll", headRoll);
+        nbt.put("head", head.toNbt());
 
         // FULL BODY
         nbt.putFloat("yaw", yaw);
@@ -134,27 +143,13 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     @Override
     public void fromClientTag(NbtCompound nbt) {
         // LEGS
-        leftLegPitch = nbt.getFloat("leftLegPitch");
-        leftLegYaw = nbt.getFloat("leftLegYaw");
-        leftLegRoll = nbt.getFloat("leftLegRoll");
+        leftLeg = StatueRotation.readFromNbt(nbt, "leftLeg");
+        rightLeg = StatueRotation.readFromNbt(nbt, "rightLeg");
 
-        rightLegPitch = nbt.getFloat("rightLegPitch");
-        rightLegYaw = nbt.getFloat("rightLegYaw");
-        rightLegRoll = nbt.getFloat("rightLegRoll");
+        leftArm = StatueRotation.readFromNbt(nbt, "leftArm");
+        rightArm = StatueRotation.readFromNbt(nbt, "rightArm");
 
-        // ARMS
-        leftArmPitch = nbt.getFloat("leftArmPitch");
-        leftArmYaw = nbt.getFloat("leftArmYaw");
-        leftArmRoll = nbt.getFloat("leftArmRoll");
-
-        rightArmPitch = nbt.getFloat("rightArmPitch");
-        rightArmYaw = nbt.getFloat("rightArmYaw");
-        rightArmRoll = nbt.getFloat("rightArmRoll");
-
-        // HEAD
-        headPitch = nbt.getFloat("headPitch");
-        headYaw = nbt.getFloat("headYaw");
-        headRoll = nbt.getFloat("headRoll");
+        head = StatueRotation.readFromNbt(nbt, "head");
 
         // FULL BODY
         yaw = nbt.getFloat("yaw");
@@ -165,38 +160,24 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         if(nbt.containsUuid("profileUUID")) {
             UUID newUUID = nbt.getUuid("profileUUID");
 
-            if(newUUID != profile.getId()) {
+            if(newUUID != getProfile().getId()) {
                 profile = new GameProfile(nbt.getUuid("profileUUID"), "");
-                SkullBlockEntity.loadProperties(profile, gameProfile -> this.profile = gameProfile);
+                SkullBlockEntity.loadProperties(getProfile(), gameProfile -> this.profile = gameProfile);
             }
         }
 
+        recalculateLegLength();
     }
 
     @Override
     public NbtCompound toClientTag(NbtCompound nbt) {
-        // LEGS
-        nbt.putFloat("leftLegPitch", leftLegPitch);
-        nbt.putFloat("leftLegYaw", leftLegYaw);
-        nbt.putFloat("leftLegRoll", leftLegRoll);
+        nbt.put("leftLeg", leftLeg.toNbt());
+        nbt.put("rightLeg", rightLeg.toNbt());
 
-        nbt.putFloat("rightLegPitch", rightLegPitch);
-        nbt.putFloat("rightLegYaw", rightLegYaw);
-        nbt.putFloat("rightLegRoll", rightLegRoll);
+        nbt.put("leftArm", leftArm.toNbt());
+        nbt.put("rightArm", rightArm.toNbt());
 
-        // ARMS
-        nbt.putFloat("leftArmPitch", leftArmPitch);
-        nbt.putFloat("leftArmYaw", leftArmYaw);
-        nbt.putFloat("leftArmRoll", leftArmRoll);
-
-        nbt.putFloat("rightArmPitch", rightArmPitch);
-        nbt.putFloat("rightArmYaw", rightArmYaw);
-        nbt.putFloat("rightArmRoll", rightArmRoll);
-
-        // HEAD
-        nbt.putFloat("headPitch", headPitch);
-        nbt.putFloat("headYaw", headYaw);
-        nbt.putFloat("headRoll", headRoll);
+        nbt.put("head", head.toNbt());
 
         // FULL BODY
         nbt.putFloat("yaw", yaw);
@@ -261,6 +242,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
         buf.writeBlockPos(getPos());
+        buf.writeFloat(yaw);
     }
 
     @Override
@@ -272,5 +254,13 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
         return new StatueScreenHandler(syncId, inv, getPos());
+    }
+
+    public GameProfile getProfile() {
+        return profile;
+    }
+
+    public float getLegLength() {
+        return legLength;
     }
 }

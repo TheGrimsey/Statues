@@ -38,7 +38,10 @@ public class StatueBlock extends BlockWithEntity {
         if(world.isClient())
             return;
 
-        if(placer instanceof PlayerEntity playerEntity)
+        if(placer instanceof PlayerEntity playerEntity) {
+            if(world.getBlockEntity(pos) instanceof StatueBlockEntity blockEntity)
+                blockEntity.yaw = (int)((placer.getYaw() + 180 + 45) % 360) / 90 * 90; // Snap to closest 90 degrees.
             playerEntity.openHandledScreen(createScreenHandlerFactory(state, world, pos));
+        }
     }
 }

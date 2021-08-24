@@ -6,5 +6,7 @@
 
     "statues.pitch": "Pitch: %d",
     "statues.yaw": "Yaw: %d",
-    "statues.roll": "Roll: %d"
+    "statues.roll": "Roll: %d",
+
+    "block.statues.statue": "Statue"
 }

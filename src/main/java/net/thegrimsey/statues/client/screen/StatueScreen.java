@@ -10,54 +10,26 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3f;
+import net.thegrimsey.statues.StatueNetworking;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
+import net.thegrimsey.statues.util.RotationSlider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
-
-class RotationSlider extends SliderWidget {
-    String translationKey;
-    Consumer<Float> applyDegree;
-
-    public RotationSlider(int x, int y, int width, int height, String translationKey, Consumer<Float> applyDegree) {
-        super(x, y, width, height, LiteralText.EMPTY, 0.0D);
-
-        this.translationKey = translationKey;
-        this.applyDegree = applyDegree;
-
-        this.updateMessage();
-    }
-
-    @Override
-    protected void updateMessage() {
-        this.setMessage(new TranslatableText(translationKey, MathHelper.floor(MathHelper.clampedLerp(0.0D, 360.0D, this.value))));
-    }
-
-    @Override
-    protected void applyValue() {
-        applyDegree.accept((float) MathHelper.clampedLerp(0.0D, 360.0D, this.value));
-    }
-}
 
 public class StatueScreen extends HandledScreen<StatueScreenHandler> {
     static Identifier TEXTURE = new Identifier(Statues.MODID, "textures/gui/statue_editor.png");
 
     List<SliderWidget> sliders;
-    float bigValue = 0.f;
+    StatueBlockEntity blockEntity;
 
     SliderWidget draggedSlider = null;
-
-    StatueBlockEntity blockEntity;
 
     public StatueScreen(StatueScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -121,54 +93,64 @@ public class StatueScreen extends HandledScreen<StatueScreenHandler> {
         int sliderX = this.width / 2 - 70 - 35;
         int sliderY = (this.height - this.backgroundHeight) / 2 + 81 - 23;
 
+        // LEFT arm PANELS. (Modifies right arm)
         // Left Arm Pitch
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.leftArmPitch = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.rightArm.pitch = (float) Math.toRadians(aFloat))));
         // Left Arm Yaw
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 22, 70, 20, "statues.yaw", aFloat -> blockEntity.leftArmYaw = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 22, 70, 20, "statues.yaw", aFloat -> blockEntity.rightArm.yaw = (float) Math.toRadians(aFloat))));
         // Left Arm Roll
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 44, 70, 20, "statues.roll", aFloat -> blockEntity.leftArmRoll = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 44, 70, 20, "statues.roll", aFloat -> blockEntity.rightArm.roll = (float) Math.toRadians(aFloat))));
 
+        // RIGHT arm PANELS. (Modifies left arm)
         // Right Arm Properties
         sliderX = this.width / 2 + 35;
 
         // Right Arm Pitch
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.rightArmPitch = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.leftArm.pitch = (float) Math.toRadians(aFloat))));
         // Right Arm Yaw
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 22, 70, 20, "statues.yaw", aFloat -> blockEntity.rightArmYaw = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 22, 70, 20, "statues.yaw", aFloat -> blockEntity.leftArm.yaw = (float) Math.toRadians(aFloat))));
         // Right Arm Roll
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 44, 70, 20, "statues.roll", aFloat -> blockEntity.rightArmRoll = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 44, 70, 20, "statues.roll", aFloat -> blockEntity.leftArm.roll = (float) Math.toRadians(aFloat))));
 
         // LEGS
         sliderX = this.width / 2 - 70 - 35;
         sliderY = (this.height - backgroundHeight) / 2 + 137;
 
+        // LEFT leg PANELS. (Modifies right leg)
         // Left Leg Pitch
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.leftLegPitch = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.rightLeg.pitch = (float) Math.toRadians(aFloat))));
         // Left Leg Yaw
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 22, 70, 20, "statues.yaw", aFloat -> blockEntity.leftLegYaw = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 22, 70, 20, "statues.yaw", aFloat -> blockEntity.rightLeg.yaw = (float) Math.toRadians(aFloat))));
         // Left Leg Roll
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 44, 70, 20, "statues.roll", aFloat -> blockEntity.leftLegRoll = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 44, 70, 20, "statues.roll", aFloat -> blockEntity.rightLeg.roll = (float) Math.toRadians(aFloat))));
 
         sliderX = this.width / 2 + 35;
 
+        // RIGHT leg PANELS. (Modifies left leg)
         // Right Leg Pitch
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.rightLegPitch = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.leftLeg.pitch = (float) Math.toRadians(aFloat))));
         // Right Leg Yaw
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 22, 70, 20, "statues.yaw", aFloat -> blockEntity.rightLegYaw = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 22, 70, 20, "statues.yaw", aFloat -> blockEntity.leftLeg.yaw = (float) Math.toRadians(aFloat))));
         // Right Leg Roll
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 44, 70, 20, "statues.roll", aFloat -> blockEntity.rightArmRoll = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY + 44, 70, 20, "statues.roll", aFloat -> blockEntity.leftLeg.roll = (float) Math.toRadians(aFloat))));
 
         // HEAD
-
         sliderX = this.width / 2;
         sliderY = (this.height - backgroundHeight) / 2 + 27;
 
         // Head Pitch
-        sliders.add(addDrawableChild(new RotationSlider(sliderX - 1 - 70, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.headPitch = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX - 1 - 70, sliderY, 70, 20, "statues.pitch", aFloat -> blockEntity.head.pitch = (float) Math.toRadians(aFloat))));
         // Head Yaw
-        sliders.add(addDrawableChild(new RotationSlider(sliderX - 30, sliderY - 22, 60, 20, "statues.yaw", aFloat -> blockEntity.headYaw = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX - 30, sliderY - 22, 60, 20, "statues.yaw", aFloat -> blockEntity.head.yaw = (float) Math.toRadians(aFloat))));
         // Head Roll
-        sliders.add(addDrawableChild(new RotationSlider(sliderX + 1, sliderY, 70, 20, "statues.roll", aFloat -> blockEntity.headRoll = aFloat)));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX + 1, sliderY, 70, 20, "statues.roll", aFloat -> blockEntity.head.roll = (float) Math.toRadians(aFloat))));
+
+        // FULL BODY
+        sliderX = this.width / 2 - 30;
+        sliderY = (this.height - backgroundHeight) / 2 + 137;
+
+        // Head Pitch
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 60, 20, "statues.yaw", aFloat -> blockEntity.yaw = (float) Math.toRadians(360-aFloat))));
     }
 
     @Override
@@ -200,5 +182,21 @@ public class StatueScreen extends HandledScreen<StatueScreenHandler> {
         }
 
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    }
+
+    @Override
+    public void onClose() {
+        super.onClose();
+
+        blockEntity.yaw += handler.startYaw;
+        StatueNetworking.sendEditStatuePacket(handler.statuePos, blockEntity);
+    }
+
+    @Override
+    protected void handledScreenTick() {
+        super.handledScreenTick();
+
+        // We shouldn't be doing this every frame.
+        blockEntity.recalculateLegLength();
     }
 }

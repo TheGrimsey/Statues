@@ -14,7 +14,6 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.EntityModelPartNames;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.DefaultSkinHelper;
@@ -25,49 +24,16 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.registry.Registry;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
+import net.thegrimsey.statues.util.BipedModelWrapper;
 
 import java.util.Map;
 
-/*
-*   I have never written anything so close to Mojang code.
- */
-
-class BipedModelWrapper {
-    public final ModelPart headModel;
-    public final ModelPart hatModel;
-    public final ModelPart bodyModel;
-    public final ModelPart leftArmModel;
-    public final ModelPart rightArmModel;
-    public final ModelPart leftLegModel;
-    public final ModelPart rightLegModel;
-
-    BipedModelWrapper(ModelPart root) {
-        this.headModel = root.getChild(EntityModelPartNames.HEAD);
-        this.hatModel = root.getChild(EntityModelPartNames.HAT);
-        this.bodyModel = root.getChild(EntityModelPartNames.BODY);
-        this.leftArmModel = root.getChild(EntityModelPartNames.LEFT_ARM);
-        this.rightArmModel = root.getChild(EntityModelPartNames.RIGHT_ARM);
-        this.leftLegModel = root.getChild(EntityModelPartNames.LEFT_LEG);
-        this.rightLegModel = root.getChild(EntityModelPartNames.RIGHT_LEG);
-    }
-
-    public void hide()
-    {
-        headModel.visible = false;
-        hatModel.visible = false;
-        bodyModel.visible = false;
-        leftArmModel.visible = false;
-        rightArmModel.visible = false;
-        leftLegModel.visible = false;
-        rightLegModel.visible = false;
-    }
-}
-
 public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
+    public static final float LEG_LENGTH = 12.f;
+
     // Copied from ArmorFeatureRenderer.java
     private static final Map<String, Identifier> ARMOR_TEXTURE_CACHE = Maps.newHashMap();
     // Copied from EntityModels.java
@@ -114,25 +80,7 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
 
     @Override
     public void render(StatueBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        float legLength = 12.f;
-
-        // Calculate leg length.
-        {
-            // LEFT LEG
-            Quaternion leftLegRot = new Quaternion(entity.leftLegPitch, entity.leftLegYaw, entity.leftLegRoll, true);
-            Vec3f down = Vec3f.NEGATIVE_Y.copy();
-            down.rotate(leftLegRot);
-            float leftDot = down.dot(Vec3f.NEGATIVE_Y);
-
-            // RIGHT LEG
-            Quaternion rightLegRot = new Quaternion(entity.rightLegPitch, entity.rightLegYaw, entity.rightLegRoll, true);
-            down.set(Vec3f.NEGATIVE_Y);
-            down.rotate(rightLegRot);
-            float rightDot = down.dot(Vec3f.NEGATIVE_Y);
-
-            // Straightest leg is base.
-            legLength *= Math.max(leftDot, rightDot);
-        }
+        float legLength = entity.getLegLength();
 
         matrices.translate(0.5, 1.5 - (12.f/16f) + (legLength/16f), 0.5);
         matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180.f));
@@ -143,9 +91,9 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         updateAngles(legArmorModelWrapper, entity);
 
         // Render as player
-        if(entity.profile != null) {
-            Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = MinecraftClient.getInstance().getSkinProvider().getTextures(entity.profile);
-            boolean slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || DefaultSkinHelper.getModel(PlayerEntity.getUuidFromProfile(entity.profile)).equals("slim");
+        if(entity.getProfile() != null) {
+            Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = MinecraftClient.getInstance().getSkinProvider().getTextures(entity.getProfile());
+            boolean slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || DefaultSkinHelper.getModel(PlayerEntity.getUuidFromProfile(entity.getProfile())).equals("slim");
 
             ModelPart model = slim ? slimPlayerModel : playerModel;
             BipedModelWrapper wrapper = slim ? slimPlayerModelWrapper : playerModelWrapper;
@@ -169,22 +117,22 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
 
     void updateAngles(BipedModelWrapper wrapper, StatueBlockEntity entity)
     {
-        wrapper.leftLegModel.setAngles((float)Math.toRadians(entity.leftLegPitch), (float)Math.toRadians(entity.leftLegYaw), (float)Math.toRadians(entity.leftLegRoll));
-        wrapper.rightLegModel.setAngles((float)Math.toRadians(entity.rightLegPitch), (float)Math.toRadians(entity.rightLegYaw), (float)Math.toRadians(entity.rightLegRoll));
+        wrapper.leftLegModel.setAngles(entity.leftLeg.pitch, entity.leftLeg.yaw, entity.leftLeg.roll);
+        wrapper.rightLegModel.setAngles(entity.rightLeg.pitch, entity.rightLeg.yaw, entity.rightLeg.roll);
 
-        wrapper.leftArmModel.setAngles((float)Math.toRadians(entity.leftArmPitch), (float)Math.toRadians(entity.leftArmYaw), (float)Math.toRadians(entity.leftArmRoll));
-        wrapper.rightArmModel.setAngles((float)Math.toRadians(entity.rightArmPitch), (float)Math.toRadians(entity.rightArmYaw), (float)Math.toRadians(entity.rightArmRoll));
+        wrapper.leftArmModel.setAngles(entity.leftArm.pitch, entity.leftArm.yaw, entity.leftArm.roll);
+        wrapper.rightArmModel.setAngles(entity.rightArm.pitch, entity.rightArm.yaw, entity.rightArm.roll);
 
-        wrapper.headModel.setAngles((float)Math.toRadians(entity.headPitch), (float)Math.toRadians(entity.headYaw), (float)Math.toRadians(entity.headRoll));
-        wrapper.hatModel.setAngles((float)Math.toRadians(entity.headPitch), (float)Math.toRadians(entity.headYaw), (float)Math.toRadians(entity.headRoll));
+        wrapper.headModel.setAngles(entity.head.pitch, entity.head.yaw, entity.head.roll);
+        wrapper.hatModel.setAngles(entity.head.pitch, entity.head.yaw, entity.head.roll);
     }
 
     void updatePlayerAngles(ModelPart model, StatueBlockEntity entity) {
-        model.getChild("left_pants").setAngles((float)Math.toRadians(entity.leftLegPitch), (float)Math.toRadians(entity.leftLegYaw), (float)Math.toRadians(entity.leftLegRoll));
-        model.getChild("right_pants").setAngles((float)Math.toRadians(entity.rightLegPitch), (float)Math.toRadians(entity.rightLegYaw), (float)Math.toRadians(entity.rightLegRoll));
+        model.getChild("left_pants").setAngles(entity.leftLeg.pitch, entity.leftLeg.yaw, entity.leftLeg.roll);
+        model.getChild("right_pants").setAngles(entity.rightLeg.pitch, entity.rightLeg.yaw, entity.rightLeg.roll);
 
-        model.getChild("left_sleeve").setAngles((float)Math.toRadians(entity.leftArmPitch), (float)Math.toRadians(entity.leftArmYaw), (float)Math.toRadians(entity.leftArmRoll));
-        model.getChild("right_sleeve").setAngles((float)Math.toRadians(entity.rightArmPitch), (float)Math.toRadians(entity.rightArmYaw), (float)Math.toRadians(entity.rightArmRoll));
+        model.getChild("left_sleeve").setAngles(entity.leftArm.pitch, entity.leftArm.yaw, entity.leftArm.roll);
+        model.getChild("right_sleeve").setAngles(entity.rightArm.pitch, entity.rightArm.yaw, entity.rightArm.roll);
     }
 
     // Copied from ArmorFeatureRenderer.java (though modified and made worse)
@@ -254,10 +202,10 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
     // END copy
 
     RenderLayer getRenderLayer(StatueBlockEntity entity) {
-        if(entity.profile != null) {
+        if(entity.getProfile() != null) {
             MinecraftClient minecraftClient = MinecraftClient.getInstance();
-            Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraftClient.getSkinProvider().getTextures(entity.profile);
-            return map.containsKey(MinecraftProfileTexture.Type.SKIN) ? RenderLayer.getEntityTranslucent(minecraftClient.getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN)) : RenderLayer.getEntityCutoutNoCull(DefaultSkinHelper.getTexture(PlayerEntity.getUuidFromProfile(entity.profile)));
+            Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraftClient.getSkinProvider().getTextures(entity.getProfile());
+            return map.containsKey(MinecraftProfileTexture.Type.SKIN) ? RenderLayer.getEntityTranslucent(minecraftClient.getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN)) : RenderLayer.getEntityCutoutNoCull(DefaultSkinHelper.getTexture(PlayerEntity.getUuidFromProfile(entity.getProfile())));
         }
 
         return RenderLayer.getEntityCutout(Registry.BLOCK.getId(Blocks.STONE));

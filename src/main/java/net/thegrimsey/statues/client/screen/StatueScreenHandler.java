@@ -1,5 +1,7 @@
 package net.thegrimsey.statues.client.screen;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketByteBuf;
@@ -11,10 +13,17 @@ import net.thegrimsey.statues.Statues;
 public class StatueScreenHandler extends ScreenHandler {
     final ScreenHandlerContext context;
 
+    @Environment(EnvType.CLIENT)
+    float startYaw;
+    @Environment(EnvType.CLIENT)
+    BlockPos statuePos;
+
     public StatueScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         super(Statues.STATUE_SCREENHANDLER, syncId);
 
-        context = ScreenHandlerContext.create(playerInventory.player.world, buf.readBlockPos());
+        statuePos = buf.readBlockPos();
+        startYaw = buf.readFloat();
+        context = null;
     }
 
     public StatueScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
