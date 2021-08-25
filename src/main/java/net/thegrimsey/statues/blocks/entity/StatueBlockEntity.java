@@ -10,8 +10,9 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SkullBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventories;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
@@ -25,13 +26,14 @@ import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3f;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.client.renderer.StatueRenderer;
-import net.thegrimsey.statues.client.screen.StatueScreenHandler;
+import net.thegrimsey.statues.client.screen.StatueEquipmentScreenHandler;
+import net.thegrimsey.statues.client.screen.StatueEditorScreenHandler;
 import net.thegrimsey.statues.util.StatueRotation;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class StatueBlockEntity extends BlockEntity implements BlockEntityClientSerializable, ExtendedScreenHandlerFactory {
+public class StatueBlockEntity extends BlockEntity implements BlockEntityClientSerializable, ExtendedScreenHandlerFactory, Inventory {
 
     // Rotations of body parts.
     public StatueRotation leftLeg;
@@ -45,14 +47,15 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     public float yaw = 0.f;
 
     // Inventory
-    final DefaultedList<ItemStack> heldItems;
-    final DefaultedList<ItemStack> armorItems;
+    final DefaultedList<ItemStack> equipment;
 
     UUID profileId;
     @Environment(EnvType.CLIENT)
     GameProfile profile = null;
     @Environment(EnvType.CLIENT)
     float legLength;
+
+    boolean finishedEditing = false;
 
     public StatueBlockEntity(BlockPos pos, BlockState state) {
         super(Statues.STATUE_BLOCKENTITY, pos, state);
@@ -65,18 +68,13 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
         head = new StatueRotation();
 
-        heldItems = DefaultedList.ofSize(2, ItemStack.EMPTY);
-        armorItems = DefaultedList.ofSize(4, ItemStack.EMPTY);
-
-        armorItems.set(3, Items.DIAMOND_HELMET.getDefaultStack());
-        armorItems.set(2, Items.GOLDEN_CHESTPLATE.getDefaultStack());
-        armorItems.set(1, Items.IRON_LEGGINGS.getDefaultStack());
-        armorItems.set(0, Items.LEATHER_BOOTS.getDefaultStack());
+        equipment = DefaultedList.ofSize(6, ItemStack.EMPTY);
     }
 
     public boolean editingFinished() {
-        return false;
+        return finishedEditing;
     }
+    public void markEditingFinished() { finishedEditing = true; }
 
     public void recalculateLegLength() {
         // LEFT LEG
@@ -92,7 +90,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         float rightDot = down.dot(Vec3f.NEGATIVE_Y);
 
         // Straightest leg is base.
-        legLength = StatueRenderer.LEG_LENGTH * Math.max(leftDot, rightDot);
+        legLength = Math.max(StatueRenderer.LEG_LENGTH * Math.max(leftDot, rightDot), 0.0F);
     }
 
     @Override
@@ -114,6 +112,9 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
         if(nbt.containsUuid("profileUUID"))
             profileId = nbt.getUuid("profileUUID");
+
+        // If it is loaded from disk it must have finished editing.
+        finishedEditing = true;
 
         super.readNbt(nbt);
     }
@@ -193,50 +194,28 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
     void readInventory(NbtCompound nbt) {
         NbtList itemNbts;
-        if (nbt.contains("ArmorItems", 9)) {
-            itemNbts = nbt.getList("ArmorItems", 10);
+        if (nbt.contains("Equipment", 9)) {
+            itemNbts = nbt.getList("Equipment", 10);
 
-            for(int i = 0; i < this.getArmorItems().size(); ++i) {
-                this.getArmorItems().set(i, ItemStack.fromNbt(itemNbts.getCompound(i)));
-            }
-        }
-
-        if (nbt.contains("HandItems", 9)) {
-            itemNbts = nbt.getList("HandItems", 10);
-
-            for(int i = 0; i < this.getHeldItems().size(); ++i) {
-                this.getHeldItems().set(i, ItemStack.fromNbt(itemNbts.getCompound(i)));
+            for (int i = 0; i < equipment.size(); ++i) {
+                equipment.set(i, ItemStack.fromNbt(itemNbts.getCompound(i)));
             }
         }
     }
 
     void writeInventory(NbtCompound nbt) {
-        NbtList armorItemsNbt = new NbtList();
-        for(ItemStack stack : getArmorItems()) {
+        NbtList equipmentNbt = new NbtList();
+        for(ItemStack stack : equipment) {
             NbtCompound nbtCompound = new NbtCompound();
-            if (!stack.isEmpty()) {
-                stack.writeNbt(nbtCompound);
-            }
-            armorItemsNbt.add(nbtCompound);
-        }
-        nbt.put("ArmorItems", armorItemsNbt);
+            stack.writeNbt(nbtCompound);
 
-        NbtList heldItemsNbt = new NbtList();
-        for(ItemStack stack : getHeldItems()) {
-            NbtCompound nbtCompound = new NbtCompound();
-            if (!stack.isEmpty()) {
-                stack.writeNbt(nbtCompound);
-            }
-            heldItemsNbt.add(nbtCompound);
+            equipmentNbt.add(nbtCompound);
         }
-        nbt.put("HandItems", heldItemsNbt);
+        nbt.put("Equipment", equipmentNbt);
     }
 
-    public DefaultedList<ItemStack> getHeldItems() {
-        return heldItems;
-    }
-    public DefaultedList<ItemStack> getArmorItems() {
-        return armorItems;
+    public DefaultedList<ItemStack> getEquipment() {
+        return equipment;
     }
 
     @Override
@@ -253,14 +232,75 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        return new StatueScreenHandler(syncId, inv, getPos());
+        if(editingFinished())
+            return new StatueEquipmentScreenHandler(syncId, inv, this);
+
+        return new StatueEditorScreenHandler(syncId, inv, getPos());
     }
 
+    @Environment(EnvType.CLIENT)
     public GameProfile getProfile() {
         return profile;
     }
+    @Environment(EnvType.CLIENT)
+    public void setProfile(GameProfile profile) { this.profile = profile; }
 
+    @Environment(EnvType.CLIENT)
     public float getLegLength() {
         return legLength;
+    }
+
+    // INVENTORY
+    @Override
+    public int size() {
+        return equipment.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return equipment.isEmpty();
+    }
+
+    @Override
+    public ItemStack getStack(int slot) {
+        return equipment.get(slot);
+    }
+
+    @Override
+    public ItemStack removeStack(int slot, int amount) {
+        ItemStack result = Inventories.splitStack(equipment, slot, amount);
+        if (!result.isEmpty()) {
+            markDirty();
+        }
+        return result;
+    }
+
+    @Override
+    public ItemStack removeStack(int slot) {
+        return Inventories.removeStack(equipment, slot);
+    }
+
+    @Override
+    public void setStack(int slot, ItemStack stack) {
+        equipment.set(slot, stack);
+        if(stack.getCount() > getMaxCountPerStack())
+            stack.setCount(getMaxCountPerStack());
+    }
+
+    @Override
+    public boolean canPlayerUse(PlayerEntity player) {
+        return true;
+    }
+
+    @Override
+    public void clear() {
+        equipment.clear();
+    }
+
+    @Override
+    public void markDirty() {
+        super.markDirty();
+
+        sync();
     }
 }

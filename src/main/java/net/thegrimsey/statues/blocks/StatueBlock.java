@@ -10,6 +10,9 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
@@ -43,5 +46,18 @@ public class StatueBlock extends BlockWithEntity {
                 blockEntity.yaw = (int)((placer.getYaw() + 180 + 45) % 360) / 90 * 90; // Snap to closest 90 degrees.
             playerEntity.openHandledScreen(createScreenHandlerFactory(state, world, pos));
         }
+    }
+
+    @Override
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        if(world.getBlockEntity(pos) instanceof StatueBlockEntity statueBlockEntity) {
+            if(statueBlockEntity.editingFinished() && player.getStackInHand(hand).isEmpty()) {
+                player.openHandledScreen(createScreenHandlerFactory(state, world, pos));
+
+                return ActionResult.SUCCESS;
+            }
+        }
+
+        return super.onUse(state, world, pos, player, hand, hit);
     }
 }

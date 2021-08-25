@@ -13,17 +13,21 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
+import net.minecraft.client.render.entity.feature.HeldItemFeatureRenderer;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.item.ItemRenderer;
+import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3f;
 import net.minecraft.util.registry.Registry;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
@@ -84,7 +88,7 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
 
         matrices.translate(0.5, 1.5 - (12.f/16f) + (legLength/16f), 0.5);
         matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180.f));
-        matrices.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(entity.yaw));
+        matrices.multiply(Vec3f.POSITIVE_Y.getRadialQuaternion(entity.yaw));
 
         // Set angles.
         updateAngles(armorModelWrapper, entity);
@@ -113,6 +117,8 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.CHEST);
         renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.LEGS);
         renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.FEET);
+
+        renderHandItems(entity, matrices, vertexConsumers, light, overlay);
     }
 
     void updateAngles(BipedModelWrapper wrapper, StatueBlockEntity entity)
@@ -135,10 +141,34 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         model.getChild("right_sleeve").setAngles(entity.rightArm.pitch, entity.rightArm.yaw, entity.rightArm.roll);
     }
 
+    void renderHandItems(StatueBlockEntity entity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+
+        Quaternion quaternion = Vec3f.POSITIVE_X.getDegreesQuaternion(-90.0F);
+        Quaternion quaternion1 = Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F);
+        {
+            matrices.push();
+            legArmorModelWrapper.leftArmModel.rotate(matrices); // Rotating using legArmorModel because it is always updated.
+            matrices.multiply(quaternion);
+            matrices.multiply(quaternion1);
+            matrices.translate(-1.0F / 16.0F, 0.125D, -0.625D);
+            MinecraftClient.getInstance().getItemRenderer().renderItem(null, entity.getStack(4), ModelTransformation.Mode.THIRD_PERSON_LEFT_HAND, true, matrices, vertexConsumers, entity.getWorld(), light, overlay, 0);
+            matrices.pop();
+        }
+        {
+            matrices.push();
+            legArmorModelWrapper.rightArmModel.rotate(matrices);
+            matrices.multiply(quaternion);
+            matrices.multiply(quaternion1);
+            matrices.translate(1.0F / 16.0F, 0.125D, -0.625D);
+            MinecraftClient.getInstance().getItemRenderer().renderItem(null, entity.getStack(5), ModelTransformation.Mode.THIRD_PERSON_RIGHT_HAND, false, matrices, vertexConsumers, entity.getWorld(), light, overlay, 0);
+            matrices.pop();
+        }
+    }
+
     // Copied from ArmorFeatureRenderer.java (though modified and made worse)
     void renderArmor(StatueBlockEntity entity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, EquipmentSlot slot)
     {
-        ItemStack itemStack = entity.getArmorItems().get(slot.getEntitySlotId());
+        ItemStack itemStack = entity.getEquipment().get(slot.getEntitySlotId());
         if (itemStack.getItem() instanceof ArmorItem armorItem) {
             if (armorItem.getSlotType() == slot) {
                 ModelPart modelToRender = slot == EquipmentSlot.LEGS ? legArmorModel : armorModel;
@@ -159,7 +189,6 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
                 } else {
                     this.renderArmorParts(matrices, vertexConsumers, light, armorItem, hasGlint, modelToRender, usesSecondLayer, 1.0F, 1.0F, 1.0F, false);
                 }
-
             }
         }
     }

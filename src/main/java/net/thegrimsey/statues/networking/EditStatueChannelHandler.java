@@ -39,6 +39,7 @@ public class EditStatueChannelHandler implements ServerPlayNetworking.PlayChanne
 
                     blockEntity.yaw = yaw;
 
+                    blockEntity.markEditingFinished();
                     blockEntity.sync();
                 }
             }

@@ -23,7 +23,7 @@ import net.thegrimsey.statues.util.RotationSlider;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StatueScreen extends HandledScreen<StatueScreenHandler> {
+public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler> {
     static Identifier TEXTURE = new Identifier(Statues.MODID, "textures/gui/statue_editor.png");
 
     List<SliderWidget> sliders;
@@ -31,12 +31,13 @@ public class StatueScreen extends HandledScreen<StatueScreenHandler> {
 
     SliderWidget draggedSlider = null;
 
-    public StatueScreen(StatueScreenHandler handler, PlayerInventory inventory, Text title) {
+    public StatueEditorScreen(StatueEditorScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
         backgroundWidth = 220;
         backgroundHeight = 207;
 
         blockEntity = new StatueBlockEntity(BlockPos.ORIGIN, null);
+        blockEntity.setProfile(inventory.player.getGameProfile());
     }
 
     @Override

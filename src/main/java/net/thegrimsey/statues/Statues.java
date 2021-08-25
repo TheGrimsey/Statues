@@ -12,7 +12,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.thegrimsey.statues.blocks.StatueBlock;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
-import net.thegrimsey.statues.client.screen.StatueScreenHandler;
+import net.thegrimsey.statues.client.screen.StatueEquipmentScreenHandler;
+import net.thegrimsey.statues.client.screen.StatueEditorScreenHandler;
 
 public class Statues implements ModInitializer {
 	public static final String MODID = "statues";
@@ -21,7 +22,8 @@ public class Statues implements ModInitializer {
 	public static final StatueBlock STATUE_BLOCK = new StatueBlock();
 	public static BlockEntityType<StatueBlockEntity> STATUE_BLOCKENTITY;
 
-	public static final ScreenHandlerType<StatueScreenHandler> STATUE_SCREENHANDLER = ScreenHandlerRegistry.registerExtended(new Identifier(MODID, "statue_screenhandler"), StatueScreenHandler::new);
+	public static final ScreenHandlerType<StatueEditorScreenHandler> STATUE_SCREENHANDLER = ScreenHandlerRegistry.registerExtended(new Identifier(MODID, "statue_editor_screenhandler"), StatueEditorScreenHandler::new);
+	public static final ScreenHandlerType<StatueEquipmentScreenHandler> STATUE_EQUIPMENT_SCREENHANDLER = ScreenHandlerRegistry.registerExtended(new Identifier(MODID, "statue_equipment_screenhandler"), StatueEquipmentScreenHandler::new);
 
 	@Override
 	public void onInitialize() {

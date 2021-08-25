@@ -10,7 +10,7 @@ import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.util.math.BlockPos;
 import net.thegrimsey.statues.Statues;
 
-public class StatueScreenHandler extends ScreenHandler {
+public class StatueEditorScreenHandler extends ScreenHandler {
     final ScreenHandlerContext context;
 
     @Environment(EnvType.CLIENT)
@@ -18,7 +18,7 @@ public class StatueScreenHandler extends ScreenHandler {
     @Environment(EnvType.CLIENT)
     BlockPos statuePos;
 
-    public StatueScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
+    public StatueEditorScreenHandler(int syncId, PlayerInventory playerInventory, PacketByteBuf buf) {
         super(Statues.STATUE_SCREENHANDLER, syncId);
 
         statuePos = buf.readBlockPos();
@@ -26,7 +26,7 @@ public class StatueScreenHandler extends ScreenHandler {
         context = null;
     }
 
-    public StatueScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
+    public StatueEditorScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
         super(Statues.STATUE_SCREENHANDLER, syncId);
 
         context = ScreenHandlerContext.create(playerInventory.player.world, pos);
