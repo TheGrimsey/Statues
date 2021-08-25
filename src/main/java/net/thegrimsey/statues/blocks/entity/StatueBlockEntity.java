@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SkullBlockEntity;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -20,6 +21,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Util;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Quaternion;
@@ -162,7 +164,12 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
             UUID newUUID = nbt.getUuid("profileUUID");
 
             if(profile == null || newUUID != getProfile().getId()) {
-                SkullBlockEntity.loadProperties(new GameProfile(nbt.getUuid("profileUUID"), ""), gameProfile -> this.profile = gameProfile);
+                Util.getMainWorkerExecutor().execute(() -> {
+                            GameProfile profile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(new GameProfile(nbt.getUuid("profileUUID"), ""), true);
+                            MinecraftClient.getInstance().execute(() -> {
+                                SkullBlockEntity.loadProperties(profile, gameProfile -> this.profile = gameProfile);
+                            });
+                        });
             }
         }
 

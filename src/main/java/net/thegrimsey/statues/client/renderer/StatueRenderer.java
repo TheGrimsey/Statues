@@ -13,7 +13,6 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.entity.feature.HeldItemFeatureRenderer;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.item.ItemRenderer;
@@ -21,7 +20,6 @@ import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.DyeableArmorItem;
@@ -68,11 +66,13 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         playerModel = texturedModelData.createModel();
         playerModelWrapper = new BipedModelWrapper(playerModel);
         playerModel.getChild("cloak").visible = false;
+        playerModel.getChild("ear").visible = false;
 
         texturedModelData = TexturedModelData.of(PlayerEntityModel.getTexturedModelData(Dilation.NONE, true), 64, 64);
         slimPlayerModel = texturedModelData.createModel();
         slimPlayerModelWrapper = new BipedModelWrapper(slimPlayerModel);
         slimPlayerModel.getChild("cloak").visible = false;
+        slimPlayerModel.getChild("ear").visible = false;
 
         // Armor models
         texturedModelData = TexturedModelData.of(BipedEntityModel.getModelData(ARMOR_DILATION, 0.0F), 64, 32);
@@ -99,7 +99,7 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         // Render as player
         if(entity.getProfile() != null) {
             Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = MinecraftClient.getInstance().getSkinProvider().getTextures(entity.getProfile());
-            boolean slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || DefaultSkinHelper.getModel(PlayerEntity.getUuidFromProfile(entity.getProfile())).equals("slim");
+            boolean slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || !map.containsKey(MinecraftProfileTexture.Type.SKIN) && DefaultSkinHelper.getModel(PlayerEntity.getUuidFromProfile(entity.getProfile())).equals("slim");
 
             ModelPart model = slim ? slimPlayerModel : playerModel;
             BipedModelWrapper wrapper = slim ? slimPlayerModelWrapper : playerModelWrapper;
