@@ -111,7 +111,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         readInventory(nbt);
 
         if(nbt.containsUuid("profileUUID"))
-            profileId = nbt.getUuid("profileUUID");
+            setProfileId(nbt.getUuid("profileUUID"));
 
         // If it is loaded from disk it must have finished editing.
         finishedEditing = true;
@@ -161,9 +161,8 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         if(nbt.containsUuid("profileUUID")) {
             UUID newUUID = nbt.getUuid("profileUUID");
 
-            if(newUUID != getProfile().getId()) {
-                profile = new GameProfile(nbt.getUuid("profileUUID"), "");
-                SkullBlockEntity.loadProperties(getProfile(), gameProfile -> this.profile = gameProfile);
+            if(profile == null || newUUID != getProfile().getId()) {
+                SkullBlockEntity.loadProperties(new GameProfile(nbt.getUuid("profileUUID"), ""), gameProfile -> this.profile = gameProfile);
             }
         }
 
@@ -302,5 +301,9 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         super.markDirty();
 
         sync();
+    }
+
+    public void setProfileId(UUID profileId) {
+        this.profileId = profileId;
     }
 }

@@ -26,7 +26,6 @@
     ]
   },
   "mixins": [
-    "statues.mixins.json"
   ],
 
   "depends": {

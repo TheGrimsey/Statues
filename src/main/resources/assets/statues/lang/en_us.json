@@ -8,5 +8,8 @@
     "statues.yaw": "Yaw: %d",
     "statues.roll": "Roll: %d",
 
-    "block.statues.statue": "Statue"
+    "block.statues.statue": "Statue",
+    "item.statues.palette": "Palette",
+
+    "statues.palette.button_done": "Done"
 }

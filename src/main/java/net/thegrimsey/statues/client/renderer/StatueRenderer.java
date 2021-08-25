@@ -67,10 +67,12 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         texturedModelData = TexturedModelData.of(PlayerEntityModel.getTexturedModelData(Dilation.NONE, false), 64, 64);
         playerModel = texturedModelData.createModel();
         playerModelWrapper = new BipedModelWrapper(playerModel);
+        playerModel.getChild("cloak").visible = false;
 
         texturedModelData = TexturedModelData.of(PlayerEntityModel.getTexturedModelData(Dilation.NONE, true), 64, 64);
         slimPlayerModel = texturedModelData.createModel();
         slimPlayerModelWrapper = new BipedModelWrapper(slimPlayerModel);
+        slimPlayerModel.getChild("cloak").visible = false;
 
         // Armor models
         texturedModelData = TexturedModelData.of(BipedEntityModel.getModelData(ARMOR_DILATION, 0.0F), 64, 32);

@@ -51,7 +51,7 @@ public class StatueBlock extends BlockWithEntity {
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if(world.getBlockEntity(pos) instanceof StatueBlockEntity statueBlockEntity) {
-            if(statueBlockEntity.editingFinished() && player.getStackInHand(hand).isEmpty()) {
+            if(statueBlockEntity.editingFinished() && player.getMainHandStack().isEmpty()) {
                 player.openHandledScreen(createScreenHandlerFactory(state, world, pos));
 
                 return ActionResult.SUCCESS;
