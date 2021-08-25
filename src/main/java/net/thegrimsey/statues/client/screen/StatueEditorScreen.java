@@ -24,10 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler> {
-    static Identifier TEXTURE = new Identifier(Statues.MODID, "textures/gui/statue_editor.png");
+    static final Identifier TEXTURE = new Identifier(Statues.MODID, "textures/gui/statue_editor.png");
 
     List<SliderWidget> sliders;
-    StatueBlockEntity blockEntity;
+    final StatueBlockEntity blockEntity;
 
     SliderWidget draggedSlider = null;
 
@@ -52,7 +52,6 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
 
     @Override
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-        //this.textRenderer.draw(matrices, this.title, (float)this.titleX, (float)this.titleY, 4210752);
     }
 
     // Based on InventoryScreen::DrawEntity

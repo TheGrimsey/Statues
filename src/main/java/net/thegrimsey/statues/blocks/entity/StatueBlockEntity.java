@@ -110,7 +110,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         yaw = nbt.getFloat("yaw");
 
         // INVENTORY
-        readInventory(nbt);
+        readEquipment(nbt);
 
         if(nbt.containsUuid("profileUUID"))
             setProfileId(nbt.getUuid("profileUUID"));
@@ -135,7 +135,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         nbt.putFloat("yaw", yaw);
 
         // INVENTORY
-        writeInventory(nbt);
+        writeEquipment(nbt);
 
         if(profileId != null)
             nbt.putUuid("profileUUID", profileId);
@@ -158,7 +158,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         yaw = nbt.getFloat("yaw");
 
         // INVENTORY
-        readInventory(nbt);
+        readEquipment(nbt);
 
         if(nbt.containsUuid("profileUUID")) {
             UUID newUUID = nbt.getUuid("profileUUID");
@@ -166,9 +166,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
             if(profile == null || newUUID != getProfile().getId()) {
                 Util.getMainWorkerExecutor().execute(() -> {
                             GameProfile profile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(new GameProfile(nbt.getUuid("profileUUID"), ""), true);
-                            MinecraftClient.getInstance().execute(() -> {
-                                SkullBlockEntity.loadProperties(profile, gameProfile -> this.profile = gameProfile);
-                            });
+                            MinecraftClient.getInstance().execute(() -> SkullBlockEntity.loadProperties(profile, gameProfile -> this.profile = gameProfile));
                         });
             }
         }
@@ -190,7 +188,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         nbt.putFloat("yaw", yaw);
 
         // INVENTORY
-        writeInventory(nbt);
+        writeEquipment(nbt);
 
         if(profileId != null)
             nbt.putUuid("profileUUID", profileId);
@@ -198,18 +196,18 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         return nbt;
     }
 
-    void readInventory(NbtCompound nbt) {
-        NbtList itemNbts;
+    void readEquipment(NbtCompound nbt) {
+        NbtList equipmentNbt;
         if (nbt.contains("Equipment", 9)) {
-            itemNbts = nbt.getList("Equipment", 10);
+            equipmentNbt = nbt.getList("Equipment", 10);
 
             for (int i = 0; i < equipment.size(); ++i) {
-                equipment.set(i, ItemStack.fromNbt(itemNbts.getCompound(i)));
+                equipment.set(i, ItemStack.fromNbt(equipmentNbt.getCompound(i)));
             }
         }
     }
 
-    void writeInventory(NbtCompound nbt) {
+    void writeEquipment(NbtCompound nbt) {
         NbtList equipmentNbt = new NbtList();
         for(ItemStack stack : equipment) {
             NbtCompound nbtCompound = new NbtCompound();

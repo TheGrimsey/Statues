@@ -18,8 +18,8 @@ import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 import org.jetbrains.annotations.Nullable;
 
 public class StatueEquipmentScreenHandler extends ScreenHandler {
-    class ArmorSlot extends Slot {
-        EquipmentSlot slot;
+    static class ArmorSlot extends Slot {
+        final EquipmentSlot slot;
 
         public ArmorSlot(Inventory inventory, int index, int x, int y, EquipmentSlot slot) {
             super(inventory, index, x, y);
@@ -76,13 +76,13 @@ public class StatueEquipmentScreenHandler extends ScreenHandler {
             this.addSlot(new Slot(inventory, 4 + column, 115 - 70 * column, 34));
         }
 
-        // The player inventory
+        // Player inventory
         for (column = 0; column < 3; ++column) {
             for (row = 0; row < 9; ++row) {
                 this.addSlot(new Slot(playerInventory, row + column * 9 + 9, 8 + row * 18, 94 + column * 18));
             }
         }
-        // The player Hotbar
+        // Hot-bar
         for (column = 0; column < 9; ++column) {
             this.addSlot(new Slot(playerInventory, column, 8 + column * 18, 152));
         }

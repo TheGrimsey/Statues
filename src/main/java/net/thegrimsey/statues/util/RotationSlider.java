@@ -8,8 +8,8 @@ import net.minecraft.util.math.MathHelper;
 import java.util.function.Consumer;
 
 public class RotationSlider extends SliderWidget {
-    String translationKey;
-    Consumer<Float> applyDegree;
+    final String translationKey;
+    final Consumer<Float> applyDegree;
 
     public RotationSlider(int x, int y, int width, int height, String translationKey, Consumer<Float> applyDegree) {
         super(x, y, width, height, LiteralText.EMPTY, 0.0D);

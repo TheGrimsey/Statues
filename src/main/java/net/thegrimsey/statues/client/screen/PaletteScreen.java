@@ -13,7 +13,8 @@ import net.thegrimsey.statues.StatueNetworking;
 
 public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
     TextFieldWidget textFieldWidget;
-    ButtonWidget doneButton;
+    TranslatableText renderText = new TranslatableText("statues.palette.name");
+    float textX, textY;
 
     public PaletteScreen(PaletteScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -26,18 +27,23 @@ public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
 
     @Override
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
+        textRenderer.drawWithShadow(matrices, renderText, textX, textY, 16777215);
     }
 
     @Override
     protected void init() {
         super.init();
 
+        textX = (this.backgroundWidth - textRenderer.getWidth(renderText)) / 2.f;
+        textY = this.backgroundHeight/2.f - 15 - textRenderer.fontHeight;
+
         client.keyboard.setRepeatEvents(true);
 
         textFieldWidget = addDrawableChild(new TextFieldWidget(textRenderer, this.width/2 - 75, this.height/2 - 10, 150, 20, Text.of("")));
         textFieldWidget.setMaxLength(16);
 
-        doneButton = addDrawableChild(new ButtonWidget(this.width/2 - 75, this.height/2 + 15, 150, 20, new TranslatableText("statues.palette.button_done"), button -> {
+        // Done button
+        addDrawableChild(new ButtonWidget(this.width/2 - 75, this.height/2 + 15, 150, 20, new TranslatableText("statues.palette.button_done"), button -> {
             // Send.
             SkullBlockEntity.loadProperties(new GameProfile(null, textFieldWidget.getText()), gameProfile -> {
                 StatueNetworking.sendSendPalette(handler.statuePos, gameProfile.getId());
