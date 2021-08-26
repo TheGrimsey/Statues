@@ -26,9 +26,9 @@ public class EditStatueChannelHandler implements ServerPlayNetworking.PlayChanne
         float yaw = buf.readFloat();
 
         server.execute(() -> {
-            boolean canReach = player.squaredDistanceTo((double)pos.getX() + 0.5D, (double)pos.getY() + 0.5D, (double)pos.getZ() + 0.5D) <= 64.0D;
-            if(canReach && player.getServerWorld().getBlockEntity(pos) instanceof StatueBlockEntity blockEntity) {
-                if(!blockEntity.editingFinished()) {
+            boolean canReach = player.squaredDistanceTo((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D) <= 64.0D;
+            if (canReach && player.getServerWorld().getBlockEntity(pos) instanceof StatueBlockEntity blockEntity) {
+                if (!blockEntity.editingFinished()) {
                     blockEntity.leftArm = leftArm;
                     blockEntity.rightArm = rightArm;
 

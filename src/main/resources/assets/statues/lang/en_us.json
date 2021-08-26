@@ -3,7 +3,7 @@
     "statues.yaw": "Yaw: %d",
     "statues.roll": "Roll: %d",
 
-    "block.statues.statue": "Statue",
+    "item.statues.hammer": "Statue Hammer",
     "item.statues.palette": "Palette",
     "item.statues.palette.lore": "§5Use on §ostatues§r§5 to paint them.",
 

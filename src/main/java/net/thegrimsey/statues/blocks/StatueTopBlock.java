@@ -13,6 +13,7 @@ import net.minecraft.world.World;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 
+@SuppressWarnings("deprecation")
 public class StatueTopBlock extends Block {
     public StatueTopBlock(Settings settings) {
         super(settings);
@@ -29,7 +30,7 @@ public class StatueTopBlock extends Block {
         return BlockRenderType.INVISIBLE;
     }
 
-    static final VoxelShape statueCuboid = VoxelShapes.cuboid(0,-1,0,1,1,1);
+    static final VoxelShape statueCuboid = VoxelShapes.cuboid(0, -1, 0, 1, 1, 1);
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
@@ -38,8 +39,8 @@ public class StatueTopBlock extends Block {
 
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         BlockPos downPos = pos.down();
-        if(world.getBlockEntity(downPos) instanceof StatueBlockEntity statueBlockEntity) {
-            if(statueBlockEntity.editingFinished() && player.getMainHandStack().isEmpty()) {
+        if (world.getBlockEntity(downPos) instanceof StatueBlockEntity statueBlockEntity) {
+            if (statueBlockEntity.editingFinished() && player.getMainHandStack().isEmpty()) {
                 player.openHandledScreen(Statues.STATUE_BLOCK.createScreenHandlerFactory(state, world, downPos));
 
                 return ActionResult.SUCCESS;

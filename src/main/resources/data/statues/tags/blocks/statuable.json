@@ -1,0 +1,13 @@
+{
+    "replace": false,
+    "values": [
+        "#minecraft:dirt",
+        "#minecraft:sand",
+        "#minecraft:logs",
+        "#minecraft:planks",
+        "#minecraft:base_stone_overworld",
+        "#minecraft:stone_bricks",
+        "#minecraft:wool",
+        "#minecraft:ice"
+    ]
+}

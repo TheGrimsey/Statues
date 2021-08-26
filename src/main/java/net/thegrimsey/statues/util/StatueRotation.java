@@ -21,8 +21,7 @@ public class StatueRotation {
         return rotation;
     }
 
-    public NbtCompound toNbt()
-    {
+    public NbtCompound toNbt() {
         NbtCompound nbtCompound = new NbtCompound();
 
         nbtCompound.putFloat("Pitch", pitch);
@@ -35,7 +34,7 @@ public class StatueRotation {
     public static StatueRotation readFromNbt(NbtCompound nbt, String name) {
         StatueRotation statueRotation = new StatueRotation();
 
-        if(nbt.get(name) instanceof NbtCompound nbtCompound) {
+        if (nbt.get(name) instanceof NbtCompound nbtCompound) {
             statueRotation.pitch = nbtCompound.getFloat("Pitch");
             statueRotation.yaw = nbtCompound.getFloat("Yaw");
             statueRotation.roll = nbtCompound.getFloat("Roll");

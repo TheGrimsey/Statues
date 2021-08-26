@@ -2,7 +2,6 @@ package net.thegrimsey.statues.client.renderer;
 
 import com.google.common.collect.Maps;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.Dilation;
 import net.minecraft.client.model.ModelPart;
@@ -27,7 +26,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3f;
-import net.minecraft.util.registry.Registry;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 import net.thegrimsey.statues.util.BipedModelWrapper;
 
@@ -35,12 +33,11 @@ import java.util.Map;
 
 public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
     public static final float LEG_LENGTH = 12.f;
-
     // Copied from ArmorFeatureRenderer.java
-    private static final Map<String, Identifier> ARMOR_TEXTURE_CACHE = Maps.newHashMap();
+    static final Map<String, Identifier> ARMOR_TEXTURE_CACHE = Maps.newHashMap();
     // Copied from EntityModels.java
-    private static final Dilation ARMOR_DILATION = new Dilation(1.0F);
-    private static final Dilation LEG_DILATION = new Dilation(0.5F);
+    static final Dilation ARMOR_DILATION = new Dilation(1.0F);
+    static final Dilation LEG_DILATION = new Dilation(0.5F);
 
     public final ModelPart blockModel;
     public final BipedModelWrapper blockModelWrapper;
@@ -88,16 +85,12 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
     public void render(StatueBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
         float legLength = entity.getLegLength();
 
-        matrices.translate(0.5, 1.5 - (12.f/16f) + (legLength/16f), 0.5);
+        matrices.translate(0.5, 1.5 - (12.f / 16f) + (legLength / 16f), 0.5);
         matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180.f));
         matrices.multiply(Vec3f.POSITIVE_Y.getRadialQuaternion(entity.yaw));
 
-        // Set angles.
-        updateAngles(armorModelWrapper, entity);
-        updateAngles(legArmorModelWrapper, entity);
-
         // Render as player
-        if(entity.getProfile() != null) {
+        if (entity.getProfile() != null) {
             Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = MinecraftClient.getInstance().getSkinProvider().getTextures(entity.getProfile());
             boolean slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || !map.containsKey(MinecraftProfileTexture.Type.SKIN) && DefaultSkinHelper.getModel(PlayerEntity.getUuidFromProfile(entity.getProfile())).equals("slim");
 
@@ -107,24 +100,36 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
             updateAngles(wrapper, entity);
             updatePlayerAngles(model, entity);
 
-            // Render base model.
-            model.render(matrices, vertexConsumers.getBuffer(getRenderLayer(entity)), light, overlay);
+            // Get texture from profile if it exists else fallback to default.
+            Identifier texture = map.containsKey(MinecraftProfileTexture.Type.SKIN) ?
+                    MinecraftClient.getInstance().getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN) :
+                    DefaultSkinHelper.getTexture(PlayerEntity.getUuidFromProfile(entity.getProfile()));
+
+            RenderLayer renderLayer = RenderLayer.getEntityTranslucent(texture);
+
+            model.render(matrices, vertexConsumers.getBuffer(renderLayer), light, overlay);
         } else { // Render as rock
             updateAngles(blockModelWrapper, entity);
 
-            blockModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntityCutout(new Identifier("minecraft", "textures/block/stone.png"))), light, overlay);
+            blockModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntityCutout(entity.getBlockTexture())), light, overlay);
         }
 
-        renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.HEAD);
-        renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.CHEST);
-        renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.LEGS);
-        renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.FEET);
+        // Armor & Items
+        if (entity.hasEquipment()) {
+            // Set angles.
+            updateAngles(armorModelWrapper, entity);
+            updateAngles(legArmorModelWrapper, entity);
 
-        renderHandItems(entity, matrices, vertexConsumers, light, overlay);
+            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.HEAD);
+            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.CHEST);
+            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.LEGS);
+            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.FEET);
+
+            renderHandItems(entity, matrices, vertexConsumers, light, overlay);
+        }
     }
 
-    void updateAngles(BipedModelWrapper wrapper, StatueBlockEntity entity)
-    {
+    void updateAngles(BipedModelWrapper wrapper, StatueBlockEntity entity) {
         wrapper.leftLegModel.setAngles(entity.leftLeg.pitch, entity.leftLeg.yaw, entity.leftLeg.roll);
         wrapper.rightLegModel.setAngles(entity.rightLeg.pitch, entity.rightLeg.yaw, entity.rightLeg.roll);
 
@@ -168,8 +173,7 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
     }
 
     // Copied from ArmorFeatureRenderer.java (though modified and made worse)
-    void renderArmor(StatueBlockEntity entity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, EquipmentSlot slot)
-    {
+    void renderArmor(StatueBlockEntity entity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, EquipmentSlot slot) {
         ItemStack itemStack = entity.getEquipment().get(slot.getEntitySlotId());
         if (itemStack.getItem() instanceof ArmorItem armorItem) {
             if (armorItem.getSlotType() == slot) {
@@ -180,11 +184,11 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
                 boolean hasGlint = itemStack.hasGlint();
 
                 if (armorItem instanceof DyeableArmorItem) {
-                    int i = ((DyeableArmorItem)armorItem).getColor(itemStack);
+                    int i = ((DyeableArmorItem) armorItem).getColor(itemStack);
 
-                    float r = (float)(i >> 16 & 255) / 255.0F;
-                    float g = (float)(i >> 8 & 255) / 255.0F;
-                    float b = (float)(i & 255) / 255.0F;
+                    float r = (float) (i >> 16 & 255) / 255.0F;
+                    float g = (float) (i >> 8 & 255) / 255.0F;
+                    float b = (float) (i & 255) / 255.0F;
 
                     this.renderArmorParts(matrices, vertexConsumers, light, armorItem, hasGlint, modelToRender, usesSecondLayer, r, g, b, false);
                     this.renderArmorParts(matrices, vertexConsumers, light, armorItem, hasGlint, modelToRender, usesSecondLayer, 1.0F, 1.0F, 1.0F, true);
@@ -200,13 +204,13 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         model.render(matrices, vertexConsumer, light, OverlayTexture.DEFAULT_UV, r, g, b, 1.0F);
     }
 
-    private Identifier getArmorTexture(ArmorItem item, boolean legs, boolean overlay) {
+    Identifier getArmorTexture(ArmorItem item, boolean legs, boolean overlay) {
         String materialName = item.getMaterial().getName();
         String string = "textures/models/armor/" + materialName + "_layer_" + (legs ? 2 : 1) + (overlay ? "_overlay" : "") + ".png";
         return ARMOR_TEXTURE_CACHE.computeIfAbsent(string, Identifier::new);
     }
 
-    protected void setArmorVisible(BipedModelWrapper modelToRender, EquipmentSlot slot) {
+    void setArmorVisible(BipedModelWrapper modelToRender, EquipmentSlot slot) {
         modelToRender.hide();
 
         switch (slot) {
@@ -231,14 +235,4 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         }
     }
     // END copy
-
-    RenderLayer getRenderLayer(StatueBlockEntity entity) {
-        if(entity.getProfile() != null) {
-            MinecraftClient minecraftClient = MinecraftClient.getInstance();
-            Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = minecraftClient.getSkinProvider().getTextures(entity.getProfile());
-            return map.containsKey(MinecraftProfileTexture.Type.SKIN) ? RenderLayer.getEntityTranslucent(minecraftClient.getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN)) : RenderLayer.getEntityCutoutNoCull(DefaultSkinHelper.getTexture(PlayerEntity.getUuidFromProfile(entity.getProfile())));
-        }
-
-        return RenderLayer.getEntityCutout(Registry.BLOCK.getId(Blocks.STONE));
-    }
 }

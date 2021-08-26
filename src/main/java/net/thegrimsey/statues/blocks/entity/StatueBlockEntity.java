@@ -21,6 +21,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
@@ -29,7 +30,6 @@ import net.minecraft.util.math.Vec3f;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.client.renderer.StatueRenderer;
 import net.thegrimsey.statues.client.screen.StatueEquipmentScreenHandler;
-import net.thegrimsey.statues.client.screen.StatueEditorScreenHandler;
 import net.thegrimsey.statues.util.StatueRotation;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,11 +51,14 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     // Inventory
     final DefaultedList<ItemStack> equipment;
 
+    public Identifier blockTexture = new Identifier("minecraft", "stone");
     UUID profileId;
     @Environment(EnvType.CLIENT)
     GameProfile profile = null;
     @Environment(EnvType.CLIENT)
     float legLength;
+    @Environment(EnvType.CLIENT)
+    boolean hasEquipment = false;
 
     boolean finishedEditing = false;
 
@@ -76,9 +79,14 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     public boolean editingFinished() {
         return finishedEditing;
     }
-    public void markEditingFinished() { finishedEditing = true; }
 
-    public void recalculateLegLength() {
+    public void markEditingFinished() {
+        finishedEditing = true;
+    }
+
+    public void updateCache() {
+        hasEquipment = equipment.stream().anyMatch(itemStack -> !itemStack.isEmpty());
+
         // LEFT LEG
         Quaternion leftLegRot = new Quaternion(leftLeg.pitch, leftLeg.yaw, leftLeg.roll, false);
         Vec3f down = Vec3f.NEGATIVE_Y.copy();
@@ -112,8 +120,13 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         // INVENTORY
         readEquipment(nbt);
 
-        if(nbt.containsUuid("profileUUID"))
+        if (nbt.containsUuid("profileUUID"))
             setProfileId(nbt.getUuid("profileUUID"));
+        else {
+            String namespace = nbt.getString("textureNamespace");
+            String path = nbt.getString("texturePath");
+            blockTexture = new Identifier(namespace, path);
+        }
 
         // If it is loaded from disk it must have finished editing.
         finishedEditing = true;
@@ -137,8 +150,12 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         // INVENTORY
         writeEquipment(nbt);
 
-        if(profileId != null)
+        if (profileId != null)
             nbt.putUuid("profileUUID", profileId);
+        else {
+            nbt.putString("textureNamespace", getBlockTexture().getNamespace());
+            nbt.putString("texturePath", getBlockTexture().getPath());
+        }
 
         return super.writeNbt(nbt);
     }
@@ -160,18 +177,22 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         // INVENTORY
         readEquipment(nbt);
 
-        if(nbt.containsUuid("profileUUID")) {
+        if (nbt.containsUuid("profileUUID")) {
             UUID newUUID = nbt.getUuid("profileUUID");
 
-            if(profile == null || newUUID != getProfile().getId()) {
+            if (profile == null || newUUID != getProfile().getId()) {
                 Util.getMainWorkerExecutor().execute(() -> {
-                            GameProfile profile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(new GameProfile(nbt.getUuid("profileUUID"), ""), true);
-                            MinecraftClient.getInstance().execute(() -> SkullBlockEntity.loadProperties(profile, gameProfile -> this.profile = gameProfile));
-                        });
+                    GameProfile profile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(new GameProfile(nbt.getUuid("profileUUID"), ""), true);
+                    MinecraftClient.getInstance().execute(() -> SkullBlockEntity.loadProperties(profile, gameProfile -> this.profile = gameProfile));
+                });
             }
+        } else {
+            String namespace = nbt.getString("textureNamespace");
+            String path = "textures/block/" + nbt.getString("texturePath") + ".png";
+            blockTexture = new Identifier(namespace, path);
         }
 
-        recalculateLegLength();
+        updateCache();
     }
 
     @Override
@@ -190,8 +211,12 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         // INVENTORY
         writeEquipment(nbt);
 
-        if(profileId != null)
+        if (profileId != null)
             nbt.putUuid("profileUUID", profileId);
+        else {
+            nbt.putString("textureNamespace", getBlockTexture().getNamespace());
+            nbt.putString("texturePath", getBlockTexture().getPath());
+        }
 
         return nbt;
     }
@@ -209,7 +234,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
     void writeEquipment(NbtCompound nbt) {
         NbtList equipmentNbt = new NbtList();
-        for(ItemStack stack : equipment) {
+        for (ItemStack stack : equipment) {
             NbtCompound nbtCompound = new NbtCompound();
             stack.writeNbt(nbtCompound);
 
@@ -225,7 +250,6 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
         buf.writeBlockPos(getPos());
-        buf.writeFloat(yaw);
     }
 
     @Override
@@ -236,18 +260,18 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     @Nullable
     @Override
     public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-        if(editingFinished())
-            return new StatueEquipmentScreenHandler(syncId, inv, this);
-
-        return new StatueEditorScreenHandler(syncId, inv, getPos());
+        return new StatueEquipmentScreenHandler(syncId, inv, this);
     }
 
     @Environment(EnvType.CLIENT)
     public GameProfile getProfile() {
         return profile;
     }
+
     @Environment(EnvType.CLIENT)
-    public void setProfile(GameProfile profile) { this.profile = profile; }
+    public void setProfile(GameProfile profile) {
+        this.profile = profile;
+    }
 
     @Environment(EnvType.CLIENT)
     public float getLegLength() {
@@ -287,7 +311,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     @Override
     public void setStack(int slot, ItemStack stack) {
         equipment.set(slot, stack);
-        if(stack.getCount() > getMaxCountPerStack())
+        if (stack.getCount() > getMaxCountPerStack())
             stack.setCount(getMaxCountPerStack());
     }
 
@@ -310,5 +334,13 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
     public void setProfileId(UUID profileId) {
         this.profileId = profileId;
+    }
+
+    public boolean hasEquipment() {
+        return hasEquipment;
+    }
+
+    public Identifier getBlockTexture() {
+        return blockTexture;
     }
 }

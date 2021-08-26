@@ -150,7 +150,7 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
         sliderY = (this.height - backgroundHeight) / 2 + 137;
 
         // Head Pitch
-        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 60, 20, "statues.yaw", aFloat -> blockEntity.yaw = (float) Math.toRadians(360-aFloat))));
+        sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 60, 20, "statues.yaw", aFloat -> blockEntity.yaw = (float) Math.toRadians(360 - aFloat))));
     }
 
     @Override
@@ -197,6 +197,6 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
         super.handledScreenTick();
 
         // We shouldn't be doing this every frame.
-        blockEntity.recalculateLegLength();
+        blockEntity.updateCache();
     }
 }

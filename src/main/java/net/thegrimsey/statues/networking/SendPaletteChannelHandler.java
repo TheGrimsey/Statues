@@ -11,7 +11,7 @@ import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 
 import java.util.UUID;
 
-public class SendPaletteChannelHandler implements ServerPlayNetworking.PlayChannelHandler{
+public class SendPaletteChannelHandler implements ServerPlayNetworking.PlayChannelHandler {
     @Override
     public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
         BlockPos pos = buf.readBlockPos();
@@ -19,7 +19,7 @@ public class SendPaletteChannelHandler implements ServerPlayNetworking.PlayChann
 
         server.execute(() -> {
             boolean canReach = player.squaredDistanceTo((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D) <= 64.0D;
-            if(canReach && player.getServerWorld().getBlockEntity(pos) instanceof StatueBlockEntity blockEntity) {
+            if (canReach && player.getServerWorld().getBlockEntity(pos) instanceof StatueBlockEntity blockEntity) {
                 blockEntity.setProfileId(id);
                 blockEntity.sync();
             }

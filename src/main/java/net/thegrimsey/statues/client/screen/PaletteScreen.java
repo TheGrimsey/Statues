@@ -12,8 +12,9 @@ import net.minecraft.text.TranslatableText;
 import net.thegrimsey.statues.StatueNetworking;
 
 public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
+    static final TranslatableText renderText = new TranslatableText("statues.palette.name");
+
     TextFieldWidget textFieldWidget;
-    TranslatableText renderText = new TranslatableText("statues.palette.name");
     float textX, textY;
 
     public PaletteScreen(PaletteScreenHandler handler, PlayerInventory inventory, Text title) {
@@ -35,15 +36,15 @@ public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
         super.init();
 
         textX = (this.backgroundWidth - textRenderer.getWidth(renderText)) / 2.f;
-        textY = this.backgroundHeight/2.f - 15 - textRenderer.fontHeight;
+        textY = this.backgroundHeight / 2.f - 15 - textRenderer.fontHeight;
 
         client.keyboard.setRepeatEvents(true);
 
-        textFieldWidget = addDrawableChild(new TextFieldWidget(textRenderer, this.width/2 - 75, this.height/2 - 10, 150, 20, Text.of("")));
+        textFieldWidget = addDrawableChild(new TextFieldWidget(textRenderer, this.width / 2 - 75, this.height / 2 - 10, 150, 20, Text.of("")));
         textFieldWidget.setMaxLength(16);
 
         // Done button
-        addDrawableChild(new ButtonWidget(this.width/2 - 75, this.height/2 + 15, 150, 20, new TranslatableText("statues.palette.button_done"), button -> {
+        addDrawableChild(new ButtonWidget(this.width / 2 - 75, this.height / 2 + 15, 150, 20, new TranslatableText("statues.palette.button_done"), button -> {
             // Send.
             SkullBlockEntity.loadProperties(new GameProfile(null, textFieldWidget.getText()), gameProfile -> {
                 StatueNetworking.sendSendPalette(handler.statuePos, gameProfile.getId());
@@ -54,7 +55,7 @@ public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if(textFieldWidget.isActive() && (keyCode >= 'A' && keyCode <= 'z' || keyCode >= '0' && keyCode <= '9'))
+        if (textFieldWidget.isActive() && (keyCode >= 'A' && keyCode <= 'z' || keyCode >= '0' && keyCode <= '9'))
             return true;
 
         return super.keyPressed(keyCode, scanCode, modifiers);

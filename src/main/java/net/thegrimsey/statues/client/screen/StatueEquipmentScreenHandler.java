@@ -35,7 +35,7 @@ public class StatueEquipmentScreenHandler extends ScreenHandler {
         protected void onTake(int amount) {
             super.onTake(amount);
 
-            ((StatueBlockEntity)inventory).sync();
+            ((StatueBlockEntity) inventory).sync();
         }
 
         @Nullable

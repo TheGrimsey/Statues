@@ -1,0 +1,15 @@
+{
+  "parent": "minecraft:item/handheld",
+  
+  "display": {
+    "thirdperson_righthand": {
+        "rotation": [ 0, -90, 15 ]
+    },
+    "thirdperson_lefthand": {
+        "rotation": [ 0, 90, -15 ]
+    }
+  },
+  "textures": {
+    "layer0": "statues:item/hammer"
+  }
+}
