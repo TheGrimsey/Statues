@@ -27,6 +27,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.registry.Registry;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.client.renderer.StatueRenderer;
 import net.thegrimsey.statues.client.screen.StatueEquipmentScreenHandler;
@@ -51,14 +52,17 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     // Inventory
     final DefaultedList<ItemStack> equipment;
 
-    public Identifier blockTexture = new Identifier("minecraft", "stone");
+    public Identifier blockId = new Identifier("minecraft", "stone");
     UUID profileId;
+
     @Environment(EnvType.CLIENT)
     GameProfile profile = null;
     @Environment(EnvType.CLIENT)
     float legLength;
     @Environment(EnvType.CLIENT)
     boolean hasEquipment = false;
+    @Environment(EnvType.CLIENT)
+    public Identifier blockTexture = new Identifier("minecraft", "textures/block/stone.png");
 
     boolean finishedEditing = false;
 
@@ -125,7 +129,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         else {
             String namespace = nbt.getString("textureNamespace");
             String path = nbt.getString("texturePath");
-            blockTexture = new Identifier(namespace, path);
+            blockId = new Identifier(namespace, path);
         }
 
         // If it is loaded from disk it must have finished editing.
@@ -153,8 +157,8 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         if (profileId != null)
             nbt.putUuid("profileUUID", profileId);
         else {
-            nbt.putString("textureNamespace", getBlockTexture().getNamespace());
-            nbt.putString("texturePath", getBlockTexture().getPath());
+            nbt.putString("textureNamespace", blockId.getNamespace());
+            nbt.putString("texturePath", blockId.getPath());
         }
 
         return super.writeNbt(nbt);
@@ -187,9 +191,10 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
                 });
             }
         } else {
-            String namespace = nbt.getString("textureNamespace");
-            String path = "textures/block/" + nbt.getString("texturePath") + ".png";
-            blockTexture = new Identifier(namespace, path);
+            blockId = new Identifier(nbt.getString("textureNamespace"), nbt.getString("texturePath"));
+            Identifier spriteId = MinecraftClient.getInstance().getBlockRenderManager().getModel(Registry.BLOCK.get(blockId).getDefaultState()).getParticleSprite().getId();
+
+            blockTexture = new Identifier(spriteId.getNamespace(), "textures/" + spriteId.getPath() + ".png");
         }
 
         updateCache();
@@ -214,8 +219,8 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         if (profileId != null)
             nbt.putUuid("profileUUID", profileId);
         else {
-            nbt.putString("textureNamespace", getBlockTexture().getNamespace());
-            nbt.putString("texturePath", getBlockTexture().getPath());
+            nbt.putString("textureNamespace", blockId.getNamespace());
+            nbt.putString("texturePath", blockId.getPath());
         }
 
         return nbt;
@@ -336,10 +341,12 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         this.profileId = profileId;
     }
 
+    @Environment(EnvType.CLIENT)
     public boolean hasEquipment() {
         return hasEquipment;
     }
 
+    @Environment(EnvType.CLIENT)
     public Identifier getBlockTexture() {
         return blockTexture;
     }

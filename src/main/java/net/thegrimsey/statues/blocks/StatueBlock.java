@@ -64,10 +64,8 @@ public class StatueBlock extends BlockWithEntity {
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (!state.isOf(newState.getBlock())) {
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof Inventory) {
-                ItemScatterer.spawn(world, pos, (Inventory)blockEntity);
-            }
+            if (world.getBlockEntity(pos) instanceof Inventory inventory)
+                ItemScatterer.spawn(world, pos, inventory);
 
             super.onStateReplaced(state, world, pos, newState, moved);
         }

@@ -29,7 +29,7 @@ public class Statues implements ModInitializer {
     public static final String MODID = "statues";
 
     // Tags
-    public static final Tag<Block> STATUABLE_TAG = TagRegistry.block(new Identifier(MODID, "statuable"));
+    public static final Tag<Block> NOT_STATUABLE_TAG = TagRegistry.block(new Identifier(MODID, "not_statuable")); // Blocks you can't turn into a statue.
 
     // Blocks
     static final Material statueMaterial = new FabricMaterialBuilder(MapColor.STONE_GRAY).blocksPistons().lightPassesThrough().build();

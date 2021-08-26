@@ -52,7 +52,7 @@ public class StatueHammerItem extends Item {
         BlockState state = context.getWorld().getBlockState(context.getBlockPos());
         BlockState aboveState = context.getWorld().getBlockState(context.getBlockPos().up());
 
-        if(state.isIn(Statues.STATUABLE_TAG) && aboveState.isOf(state.getBlock())) {
+        if(!state.isIn(Statues.NOT_STATUABLE_TAG) && aboveState.isOf(state.getBlock())) {
             World world = context.getWorld();
 
             // Set blocks.
@@ -63,7 +63,7 @@ public class StatueHammerItem extends Item {
             float yaw = (float) Math.toRadians((int) ((context.getPlayer().getYaw() + 180 + 45) % 360) / 90 * 90);
 
             if (world.getBlockEntity(context.getBlockPos()) instanceof StatueBlockEntity blockEntity) {
-                blockEntity.blockTexture = Registry.BLOCK.getId(state.getBlock());
+                blockEntity.blockId = Registry.BLOCK.getId(state.getBlock());
                 blockEntity.yaw = yaw;
             }
 
