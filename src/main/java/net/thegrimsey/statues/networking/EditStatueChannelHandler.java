@@ -13,17 +13,29 @@ import net.thegrimsey.statues.util.StatueRotation;
 public class EditStatueChannelHandler implements ServerPlayNetworking.PlayChannelHandler {
     @Override
     public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-        BlockPos pos = buf.readBlockPos();
+        BlockPos pos;
+        StatueRotation leftArm;
+        StatueRotation rightArm;
+        StatueRotation leftLeg;
+        StatueRotation rightLeg;
+        StatueRotation head;
+        float yaw;
+        try {
+            pos = buf.readBlockPos();
 
-        StatueRotation leftArm = StatueRotation.fromBuffer(buf);
-        StatueRotation rightArm = StatueRotation.fromBuffer(buf);
+            leftArm = StatueRotation.fromBuffer(buf);
+            rightArm = StatueRotation.fromBuffer(buf);
 
-        StatueRotation leftLeg = StatueRotation.fromBuffer(buf);
-        StatueRotation rightLeg = StatueRotation.fromBuffer(buf);
+            leftLeg = StatueRotation.fromBuffer(buf);
+            rightLeg = StatueRotation.fromBuffer(buf);
 
-        StatueRotation head = StatueRotation.fromBuffer(buf);
+            head = StatueRotation.fromBuffer(buf);
 
-        float yaw = buf.readFloat();
+            yaw = buf.readFloat();
+        } catch (IndexOutOfBoundsException exception) {
+            exception.printStackTrace();
+            return; // TODO log that this was an error in packet.
+        }
 
         server.execute(() -> {
             boolean canReach = player.squaredDistanceTo((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D) <= 64.0D;

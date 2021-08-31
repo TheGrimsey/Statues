@@ -46,8 +46,15 @@ public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
         // Done button
         addDrawableChild(new ButtonWidget(this.width / 2 - 75, this.height / 2 + 15, 150, 20, new TranslatableText("statues.palette.button_done"), button -> {
             // Send.
+            if(textFieldWidget.getText().isBlank() || textFieldWidget.getText().isEmpty()) {
+                onClose();
+                return;
+            }
+
             SkullBlockEntity.loadProperties(new GameProfile(null, textFieldWidget.getText()), gameProfile -> {
-                StatueNetworking.sendSendPalette(handler.statuePos, gameProfile.getId());
+                if(gameProfile.isComplete())
+                    StatueNetworking.sendSendPalette(handler.statuePos, gameProfile.getId());
+
                 onClose();
             });
         }));

@@ -14,8 +14,16 @@ import java.util.UUID;
 public class SendPaletteChannelHandler implements ServerPlayNetworking.PlayChannelHandler {
     @Override
     public void receive(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-        BlockPos pos = buf.readBlockPos();
-        UUID id = buf.readUuid();
+        BlockPos pos;
+        UUID id;
+
+        try {
+            pos = buf.readBlockPos();
+            id = buf.readUuid();
+        } catch (IndexOutOfBoundsException exception) {
+            exception.printStackTrace();
+            return; // Should do some error handling with a logger.
+        }
 
         server.execute(() -> {
             boolean canReach = player.squaredDistanceTo((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D) <= 64.0D;
