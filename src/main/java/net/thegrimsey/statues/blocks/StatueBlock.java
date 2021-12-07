@@ -2,19 +2,32 @@ package net.thegrimsey.statues.blocks;
 
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.ChestBlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.loot.context.LootContext;
+import net.minecraft.loot.context.LootContextParameters;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.ItemScatterer;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class StatueBlock extends BlockWithEntity {
     public StatueBlock(Settings settings) {
@@ -46,12 +59,6 @@ public class StatueBlock extends BlockWithEntity {
         return ActionResult.PASS;
     }
 
-    @Override
-    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        super.onBreak(world, pos, state, player);
-        world.setBlockState(pos.up(), Blocks.AIR.getDefaultState());
-    }
-
     static final VoxelShape statueCuboid = VoxelShapes.cuboid(0, 0, 0, 1, 2, 1);
 
     @SuppressWarnings("deprecation")
@@ -60,14 +67,23 @@ public class StatueBlock extends BlockWithEntity {
         return statueCuboid;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
-    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (!state.isOf(newState.getBlock())) {
-            if (world.getBlockEntity(pos) instanceof Inventory inventory)
-                ItemScatterer.spawn(world, pos, inventory);
+    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+        super.onBreak(world, pos, state, player);
+        world.setBlockState(pos.up(), Blocks.AIR.getDefaultState());
+    }
 
-            super.onStateReplaced(state, world, pos, newState, moved);
+    @Override
+    public List<ItemStack> getDroppedStacks(BlockState state, LootContext.Builder builder) {
+        List<ItemStack> drops = new ArrayList<>();
+
+        if (builder.get(LootContextParameters.BLOCK_ENTITY) instanceof StatueBlockEntity statueBlockEntity) {
+            if(statueBlockEntity.blockId != null) {
+                drops.addAll(Registry.BLOCK.get(statueBlockEntity.blockId).getDefaultState().getDroppedStacks(builder));
+                drops.addAll(Registry.BLOCK.get(statueBlockEntity.blockId).getDefaultState().getDroppedStacks(builder));
+            }
+            drops.addAll(statueBlockEntity.getEquipment());
         }
+        return drops;
     }
 }

@@ -3,7 +3,6 @@ package net.thegrimsey.statues.blocks.entity;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -16,9 +15,14 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ChunkHolder;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
@@ -36,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class StatueBlockEntity extends BlockEntity implements BlockEntityClientSerializable, ExtendedScreenHandlerFactory, Inventory {
+public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, Inventory {
 
     // Rotations of body parts.
     public StatueRotation leftLeg;
@@ -109,6 +113,8 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
     @Override
     public void readNbt(NbtCompound nbt) {
+        super.readNbt(nbt);
+
         // LEGS
         leftLeg = StatueRotation.readFromNbt(nbt, "leftLeg");
         rightLeg = StatueRotation.readFromNbt(nbt, "rightLeg");
@@ -123,23 +129,41 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
         // INVENTORY
         readEquipment(nbt);
+
+        if(net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+            if (nbt.containsUuid("profileUUID")) {
+                UUID newUUID = nbt.getUuid("profileUUID");
+
+                if (profile == null || newUUID != getProfile().getId()) {
+                    Util.getMainWorkerExecutor().execute(() -> {
+                        GameProfile profile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(new GameProfile(nbt.getUuid("profileUUID"), ""), true);
+                        MinecraftClient.getInstance().execute(() -> SkullBlockEntity.loadProperties(profile, gameProfile -> this.profile = gameProfile));
+                    });
+                }
+            } else {
+                blockId = new Identifier(nbt.getString("textureNamespace"), nbt.getString("texturePath"));
+                Identifier spriteId = MinecraftClient.getInstance().getBlockRenderManager().getModel(Registry.BLOCK.get(blockId).getDefaultState()).getParticleSprite().getId();
+
+                blockTexture = new Identifier(spriteId.getNamespace(), "textures/" + spriteId.getPath() + ".png");
+            }
+
+            updateCache();
+        }
 
         if (nbt.containsUuid("profileUUID"))
             setProfileId(nbt.getUuid("profileUUID"));
-        else {
-            String namespace = nbt.getString("textureNamespace");
-            String path = nbt.getString("texturePath");
-            blockId = new Identifier(namespace, path);
-        }
+
+        String namespace = nbt.getString("textureNamespace");
+        String path = nbt.getString("texturePath");
+        blockId = new Identifier(namespace, path);
 
         // If it is loaded from disk it must have finished editing.
         finishedEditing = true;
-
-        super.readNbt(nbt);
     }
-
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public void writeNbt(NbtCompound nbt) {
+        super.writeNbt(nbt);
+
         nbt.put("leftLeg", leftLeg.toNbt());
         nbt.put("rightLeg", rightLeg.toNbt());
 
@@ -156,74 +180,9 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
         if (profileId != null)
             nbt.putUuid("profileUUID", profileId);
-        else {
-            nbt.putString("textureNamespace", blockId.getNamespace());
-            nbt.putString("texturePath", blockId.getPath());
-        }
 
-        return super.writeNbt(nbt);
-    }
-
-    @Override
-    public void fromClientTag(NbtCompound nbt) {
-        // LEGS
-        leftLeg = StatueRotation.readFromNbt(nbt, "leftLeg");
-        rightLeg = StatueRotation.readFromNbt(nbt, "rightLeg");
-
-        leftArm = StatueRotation.readFromNbt(nbt, "leftArm");
-        rightArm = StatueRotation.readFromNbt(nbt, "rightArm");
-
-        head = StatueRotation.readFromNbt(nbt, "head");
-
-        // FULL BODY
-        yaw = nbt.getFloat("yaw");
-
-        // INVENTORY
-        readEquipment(nbt);
-
-        if (nbt.containsUuid("profileUUID")) {
-            UUID newUUID = nbt.getUuid("profileUUID");
-
-            if (profile == null || newUUID != getProfile().getId()) {
-                Util.getMainWorkerExecutor().execute(() -> {
-                    GameProfile profile = MinecraftClient.getInstance().getSessionService().fillProfileProperties(new GameProfile(nbt.getUuid("profileUUID"), ""), true);
-                    MinecraftClient.getInstance().execute(() -> SkullBlockEntity.loadProperties(profile, gameProfile -> this.profile = gameProfile));
-                });
-            }
-        } else {
-            blockId = new Identifier(nbt.getString("textureNamespace"), nbt.getString("texturePath"));
-            Identifier spriteId = MinecraftClient.getInstance().getBlockRenderManager().getModel(Registry.BLOCK.get(blockId).getDefaultState()).getParticleSprite().getId();
-
-            blockTexture = new Identifier(spriteId.getNamespace(), "textures/" + spriteId.getPath() + ".png");
-        }
-
-        updateCache();
-    }
-
-    @Override
-    public NbtCompound toClientTag(NbtCompound nbt) {
-        nbt.put("leftLeg", leftLeg.toNbt());
-        nbt.put("rightLeg", rightLeg.toNbt());
-
-        nbt.put("leftArm", leftArm.toNbt());
-        nbt.put("rightArm", rightArm.toNbt());
-
-        nbt.put("head", head.toNbt());
-
-        // FULL BODY
-        nbt.putFloat("yaw", yaw);
-
-        // INVENTORY
-        writeEquipment(nbt);
-
-        if (profileId != null)
-            nbt.putUuid("profileUUID", profileId);
-        else {
-            nbt.putString("textureNamespace", blockId.getNamespace());
-            nbt.putString("texturePath", blockId.getPath());
-        }
-
-        return nbt;
+        nbt.putString("textureNamespace", blockId.getNamespace());
+        nbt.putString("texturePath", blockId.getPath());
     }
 
     void readEquipment(NbtCompound nbt) {
@@ -236,7 +195,6 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
             }
         }
     }
-
     void writeEquipment(NbtCompound nbt) {
         NbtList equipmentNbt = new NbtList();
         for (ItemStack stack : equipment) {
@@ -246,6 +204,17 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
             equipmentNbt.add(nbtCompound);
         }
         nbt.put("Equipment", equipmentNbt);
+    }
+
+    @Nullable
+    @Override
+    public Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this, BlockEntity::createNbt);
+    }
+
+    @Override
+    public NbtCompound toInitialChunkDataNbt() {
+        return createNbt();
     }
 
     public DefaultedList<ItemStack> getEquipment() {
@@ -303,6 +272,7 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
     public ItemStack removeStack(int slot, int amount) {
         ItemStack result = Inventories.splitStack(equipment, slot, amount);
         if (!result.isEmpty()) {
+            sync();
             markDirty();
         }
         return result;
@@ -310,6 +280,9 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
 
     @Override
     public ItemStack removeStack(int slot) {
+        sync();
+        markDirty();
+
         return Inventories.removeStack(equipment, slot);
     }
 
@@ -318,6 +291,9 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         equipment.set(slot, stack);
         if (stack.getCount() > getMaxCountPerStack())
             stack.setCount(getMaxCountPerStack());
+
+        sync();
+        markDirty();
     }
 
     @Override
@@ -330,11 +306,8 @@ public class StatueBlockEntity extends BlockEntity implements BlockEntityClientS
         equipment.clear();
     }
 
-    @Override
-    public void markDirty() {
-        super.markDirty();
-
-        sync();
+    public void sync() {
+        ((ServerWorld)world).getChunkManager().markForUpdate(pos);
     }
 
     public void setProfileId(UUID profileId) {

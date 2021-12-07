@@ -39,7 +39,7 @@ public class EditStatueChannelHandler implements ServerPlayNetworking.PlayChanne
 
         server.execute(() -> {
             boolean canReach = player.squaredDistanceTo((double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D) <= 64.0D;
-            if (canReach && player.getServerWorld().getBlockEntity(pos) instanceof StatueBlockEntity blockEntity) {
+            if (canReach && player.getWorld().getBlockEntity(pos) instanceof StatueBlockEntity blockEntity) {
                 if (!blockEntity.editingFinished()) {
                     blockEntity.leftArm = leftArm;
                     blockEntity.rightArm = rightArm;
@@ -53,6 +53,7 @@ public class EditStatueChannelHandler implements ServerPlayNetworking.PlayChanne
 
                     blockEntity.markEditingFinished();
                     blockEntity.sync();
+                    blockEntity.markDirty();
                 }
             }
         });

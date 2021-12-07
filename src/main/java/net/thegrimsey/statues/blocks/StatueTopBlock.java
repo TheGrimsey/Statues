@@ -22,7 +22,7 @@ public class StatueTopBlock extends Block {
     @Override
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         super.onBreak(world, pos, state, player);
-        world.setBlockState(pos.down(), Blocks.AIR.getDefaultState());
+        world.breakBlock(pos.down(), true, player);
     }
 
     @Override
