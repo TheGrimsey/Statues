@@ -2,22 +2,14 @@ package net.thegrimsey.statues.blocks;
 
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextParameters;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
@@ -79,8 +71,12 @@ public class StatueBlock extends BlockWithEntity {
 
         if (builder.get(LootContextParameters.BLOCK_ENTITY) instanceof StatueBlockEntity statueBlockEntity) {
             if(statueBlockEntity.blockId != null) {
-                drops.addAll(Registry.BLOCK.get(statueBlockEntity.blockId).getDefaultState().getDroppedStacks(builder));
-                drops.addAll(Registry.BLOCK.get(statueBlockEntity.blockId).getDefaultState().getDroppedStacks(builder));
+                BlockState defaultState = Registry.BLOCK.get(statueBlockEntity.blockId).getDefaultState();
+                // Check if we can break the block and if so drop it.
+                if(builder.get(LootContextParameters.TOOL).isSuitableFor(defaultState) || !defaultState.isToolRequired()) {
+                    drops.addAll(defaultState.getDroppedStacks(builder));
+                    drops.addAll(defaultState.getDroppedStacks(builder));
+                }
             }
             drops.addAll(statueBlockEntity.getEquipment());
         }
