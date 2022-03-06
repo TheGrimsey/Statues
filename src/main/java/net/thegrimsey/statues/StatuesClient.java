@@ -3,6 +3,7 @@ package net.thegrimsey.statues;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.thegrimsey.statues.client.renderer.StatueRenderer;
 import net.thegrimsey.statues.client.screen.PaletteScreen;
 import net.thegrimsey.statues.client.screen.StatueEditorScreen;

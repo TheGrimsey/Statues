@@ -5,15 +5,13 @@ import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricMaterialBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
-import net.fabricmc.fabric.api.tag.TagRegistry;
-import net.fabricmc.fabric.api.tool.attribute.v1.FabricToolTags;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.MapColor;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.thegrimsey.statues.blocks.StatueBlock;
@@ -29,11 +27,11 @@ public class Statues implements ModInitializer {
     public static final String MODID = "statues";
 
     // Tags
-    public static final Tag<Block> NOT_STATUABLE_TAG = TagRegistry.block(new Identifier(MODID, "not_statuable")); // Blocks you can't turn into a statue.
+    public static final TagKey<Block> NOT_STATUABLE_TAG = TagKey.of(Registry.BLOCK_KEY, new Identifier(MODID, "not_statuable")); // Blocks you can't turn into a statue.
 
     // Blocks
     static final Material statueMaterial = new FabricMaterialBuilder(MapColor.STONE_GRAY).blocksPistons().lightPassesThrough().build();
-    static final AbstractBlock.Settings statueBlockSettings = FabricBlockSettings.of(statueMaterial).dropsNothing().requiresTool().breakByTool(FabricToolTags.AXES).breakByTool(FabricToolTags.HOES).breakByTool(FabricToolTags.PICKAXES).breakByTool(FabricToolTags.SHEARS).breakByTool(FabricToolTags.SHOVELS).breakByTool(FabricToolTags.SWORDS).strength(10.0f).nonOpaque();
+    static final AbstractBlock.Settings statueBlockSettings = FabricBlockSettings.of(statueMaterial).dropsNothing().requiresTool().requiresTool().strength(10.0f).nonOpaque();
 
     public static final StatueBlock STATUE_BLOCK = new StatueBlock(statueBlockSettings);
     public static final StatueTopBlock STATUE_TOP_BLOCK = new StatueTopBlock(statueBlockSettings);

@@ -47,7 +47,7 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
         RenderSystem.setShaderTexture(0, TEXTURE);
         drawTexture(matrices, x, y, 0, 0, backgroundWidth, backgroundHeight, backgroundWidth, backgroundHeight);
 
-        drawStatue(this.width / 2 - 18, this.height / 2 + 24, 35);
+        drawStatue(this.width / 2 - 18, this.height / 2 + 24);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
     }
 
     // Based on InventoryScreen::DrawEntity
-    void drawStatue(int x, int y, int size) {
+    void drawStatue(int x, int y) {
         MatrixStack matrixStack = RenderSystem.getModelViewStack();
         matrixStack.push();
         matrixStack.translate(x, y, 1050.0D);
@@ -64,7 +64,7 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
         RenderSystem.applyModelViewMatrix();
         MatrixStack matrixStack2 = new MatrixStack();
         matrixStack2.translate(0.0D, 0.0D, 1000.0D);
-        matrixStack2.scale((float) size, (float) size, (float) size);
+        matrixStack2.scale((float) 35, (float) 35, (float) 35);
         Quaternion quaternion = Vec3f.POSITIVE_Z.getDegreesQuaternion(180.0F);
         Quaternion quaternion2 = Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F);
         matrixStack2.multiply(quaternion);
@@ -185,8 +185,8 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
     }
 
     @Override
-    public void onClose() {
-        super.onClose();
+    public void close() {
+        super.close();
 
         blockEntity.yaw += handler.startYaw;
         StatueNetworking.sendEditStatuePacket(handler.statuePos, blockEntity);
