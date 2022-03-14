@@ -2,6 +2,7 @@ package net.thegrimsey.statues.client.renderer;
 
 import com.google.common.collect.Maps;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
+import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.Dilation;
 import net.minecraft.client.model.ModelPart;
@@ -12,6 +13,7 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
+import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.item.ItemRenderer;
@@ -53,6 +55,7 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
     public final BipedModelWrapper legArmorModelWrapper;
 
     public StatueRenderer(BlockEntityRendererFactory.Context context) {
+
         // Block model
         TexturedModelData texturedModelData = TexturedModelData.of(BipedEntityModel.getModelData(Dilation.NONE, 0.0F), 16, 16);
         blockModel = texturedModelData.createModel();
@@ -207,7 +210,10 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
     Identifier getArmorTexture(ArmorItem item, boolean legs, boolean overlay) {
         String materialName = item.getMaterial().getName();
         String string = "textures/models/armor/" + materialName + "_layer_" + (legs ? 2 : 1) + (overlay ? "_overlay" : "") + ".png";
-        return ARMOR_TEXTURE_CACHE.computeIfAbsent(string, Identifier::new);
+        if(Identifier.isValid(string))
+            return ARMOR_TEXTURE_CACHE.computeIfAbsent(string, Identifier::new);
+        else
+            return ARMOR_TEXTURE_CACHE.computeIfAbsent("", Identifier::new);
     }
 
     void setArmorVisible(BipedModelWrapper modelToRender, EquipmentSlot slot) {
