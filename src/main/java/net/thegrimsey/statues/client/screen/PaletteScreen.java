@@ -8,11 +8,10 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.thegrimsey.statues.StatueNetworking;
 
 public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
-    static final TranslatableText renderText = new TranslatableText("statues.palette.name");
+    static final Text renderText = Text.translatable("statues.palette.name");
 
     TextFieldWidget textFieldWidget;
     float textX, textY;
@@ -44,7 +43,7 @@ public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
         textFieldWidget.setMaxLength(16);
 
         // Done button
-        addDrawableChild(new ButtonWidget(this.width / 2 - 75, this.height / 2 + 15, 150, 20, new TranslatableText("statues.palette.button_done"), button -> {
+        addDrawableChild(new ButtonWidget(this.width / 2 - 75, this.height / 2 + 15, 150, 20, Text.translatable("statues.palette.button_done"), button -> {
             // Send.
             if(textFieldWidget.getText().isBlank() || textFieldWidget.getText().isEmpty()) {
                 close();

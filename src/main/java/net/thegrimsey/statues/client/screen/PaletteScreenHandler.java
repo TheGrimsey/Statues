@@ -2,6 +2,7 @@ package net.thegrimsey.statues.client.screen;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
@@ -24,6 +25,11 @@ public class PaletteScreenHandler extends ScreenHandler {
         super(Statues.PALETTE_SCREENHANDLER, syncId);
 
         context = ScreenHandlerContext.create(playerInventory.player.world, pos);
+    }
+
+    @Override
+    public ItemStack transferSlot(PlayerEntity player, int index) {
+        return null;
     }
 
     @Override

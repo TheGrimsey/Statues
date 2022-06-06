@@ -3,6 +3,7 @@ package net.thegrimsey.statues.client.renderer;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
+import net.minecraft.block.entity.SkullBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.Dilation;
 import net.minecraft.client.model.ModelPart;
@@ -95,7 +96,7 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         // Render as player
         if (entity.getProfile() != null) {
             Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = MinecraftClient.getInstance().getSkinProvider().getTextures(entity.getProfile());
-            boolean slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || !map.containsKey(MinecraftProfileTexture.Type.SKIN) && DefaultSkinHelper.getModel(PlayerEntity.getUuidFromProfile(entity.getProfile())).equals("slim");
+            boolean slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || !map.containsKey(MinecraftProfileTexture.Type.SKIN) && DefaultSkinHelper.getModel(entity.getProfile().getId()).equals("slim");
 
             ModelPart model = slim ? slimPlayerModel : playerModel;
             BipedModelWrapper wrapper = slim ? slimPlayerModelWrapper : playerModelWrapper;
@@ -103,10 +104,10 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
             updateAngles(wrapper, entity);
             updatePlayerAngles(model, entity);
 
-            // Get texture from profile if it exists else fallback to default.
+            // Get texture from profile if it exists else fallback to default. Stolen from Skull.
             Identifier texture = map.containsKey(MinecraftProfileTexture.Type.SKIN) ?
                     MinecraftClient.getInstance().getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN) :
-                    DefaultSkinHelper.getTexture(PlayerEntity.getUuidFromProfile(entity.getProfile()));
+                    DefaultSkinHelper.getTexture(entity.getProfile().getId());
 
             RenderLayer renderLayer = RenderLayer.getEntityTranslucent(texture);
 

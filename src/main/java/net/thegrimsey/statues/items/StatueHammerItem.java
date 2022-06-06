@@ -13,7 +13,6 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
@@ -34,7 +33,7 @@ public class StatueHammerItem extends Item {
 
         @Override
         public Text getDisplayName() {
-            return new TranslatableText("statues.palette.title");
+            return Text.translatable("statues.palette.title");
         }
 
         @Override

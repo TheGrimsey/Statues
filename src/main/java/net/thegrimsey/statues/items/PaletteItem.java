@@ -14,7 +14,6 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -36,7 +35,7 @@ public class PaletteItem extends Item {
 
         @Override
         public Text getDisplayName() {
-            return new TranslatableText("statues.palette.title");
+            return Text.translatable("statues.palette.title");
         }
 
         @Override
@@ -65,6 +64,6 @@ public class PaletteItem extends Item {
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
-        tooltip.add(new TranslatableText("item.statues.palette.lore"));
+        tooltip.add(Text.translatable("item.statues.palette.lore"));
     }
 }
