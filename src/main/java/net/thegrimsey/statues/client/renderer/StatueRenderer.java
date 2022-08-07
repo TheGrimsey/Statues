@@ -3,19 +3,19 @@ package net.thegrimsey.statues.client.renderer;
 import com.google.common.collect.Maps;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
+import net.fabricmc.fabric.impl.client.rendering.ArmorRendererRegistryImpl;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.Dilation;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.model.TexturedModelData;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.entity.feature.ArmorFeatureRenderer;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.PlayerEntityModel;
+import net.minecraft.client.render.entity.model.*;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.util.DefaultSkinHelper;
@@ -41,38 +41,45 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
     static final Dilation ARMOR_DILATION = new Dilation(1.0F);
     static final Dilation LEG_DILATION = new Dilation(0.5F);
 
-    public final ModelPart blockModel;
-    public final BipedModelWrapper blockModelWrapper;
+    PlayerEntityModel slimPlayer;
+    PlayerEntityModel defaultPlayer;
 
-    public final ModelPart playerModel;
-    public final BipedModelWrapper playerModelWrapper;
-    public final ModelPart slimPlayerModel;
-    public final BipedModelWrapper slimPlayerModelWrapper;
+    final ModelPart blockModel;
+    final BipedModelWrapper blockModelWrapper;
 
-    public final ModelPart armorModel;
-    public final BipedModelWrapper armorModelWrapper;
-    public final ModelPart legArmorModel;
-    public final BipedModelWrapper legArmorModelWrapper;
+    final ModelPart defaultRoot;
+    final BipedModelWrapper playerModelWrapper;
+    final ModelPart slimRoot;
+    final BipedModelWrapper slimPlayerModelWrapper;
+
+    final ModelPart armorModel;
+    final BipedModelWrapper armorModelWrapper;
+    final ModelPart legArmorModel;
+    final BipedModelWrapper legArmorModelWrapper;
+
+    PlayerEntity dummyPlayer = null;
 
     public StatueRenderer(BlockEntityRendererFactory.Context context) {
+
+        EntityModelLoader loader = MinecraftClient.getInstance().getEntityModelLoader();
+
+        slimRoot = loader.getModelPart(EntityModelLayers.PLAYER_SLIM);
+        slimRoot.getChild("cloak").visible = false;
+        slimRoot.getChild("ear").visible = false;
+        slimPlayerModelWrapper = new BipedModelWrapper(slimRoot);
+
+        defaultRoot = loader.getModelPart(EntityModelLayers.PLAYER);
+        defaultRoot.getChild("cloak").visible = false;
+        defaultRoot.getChild("ear").visible = false;
+        playerModelWrapper = new BipedModelWrapper(defaultRoot);
+
+        slimPlayer = new PlayerEntityModel(slimRoot, true);
+        defaultPlayer = new PlayerEntityModel(defaultRoot, false);
 
         // Block model
         TexturedModelData texturedModelData = TexturedModelData.of(BipedEntityModel.getModelData(Dilation.NONE, 0.0F), 16, 16);
         blockModel = texturedModelData.createModel();
         blockModelWrapper = new BipedModelWrapper(blockModel);
-
-        // Player models
-        texturedModelData = TexturedModelData.of(PlayerEntityModel.getTexturedModelData(Dilation.NONE, false), 64, 64);
-        playerModel = texturedModelData.createModel();
-        playerModelWrapper = new BipedModelWrapper(playerModel);
-        playerModel.getChild("cloak").visible = false;
-        playerModel.getChild("ear").visible = false;
-
-        texturedModelData = TexturedModelData.of(PlayerEntityModel.getTexturedModelData(Dilation.NONE, true), 64, 64);
-        slimPlayerModel = texturedModelData.createModel();
-        slimPlayerModelWrapper = new BipedModelWrapper(slimPlayerModel);
-        slimPlayerModel.getChild("cloak").visible = false;
-        slimPlayerModel.getChild("ear").visible = false;
 
         // Armor models
         texturedModelData = TexturedModelData.of(BipedEntityModel.getModelData(ARMOR_DILATION, 0.0F), 64, 32);
@@ -86,32 +93,38 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
 
     @Override
     public void render(StatueBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+        if(dummyPlayer == null) {
+            dummyPlayer = new ClientPlayerEntity(MinecraftClient.getInstance(), MinecraftClient.getInstance().world, MinecraftClient.getInstance().getNetworkHandler(), null, null, false, false);
+        }
+
         float legLength = entity.getLegLength();
 
         matrices.translate(0.5, 1.5 - (12.f / 16f) + (legLength / 16f), 0.5);
         matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180.f));
         matrices.multiply(Vec3f.POSITIVE_Y.getRadialQuaternion(entity.yaw));
 
+        boolean slim = false;
+
         // Render as player
         if (entity.getProfile() != null) {
             Map<MinecraftProfileTexture.Type, MinecraftProfileTexture> map = MinecraftClient.getInstance().getSkinProvider().getTextures(entity.getProfile());
-            boolean slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || !map.containsKey(MinecraftProfileTexture.Type.SKIN) && DefaultSkinHelper.getModel(PlayerEntity.getUuidFromProfile(entity.getProfile())).equals("slim");
+            slim = map.containsKey(MinecraftProfileTexture.Type.SKIN) && map.get(MinecraftProfileTexture.Type.SKIN).getMetadata("model") != null || !map.containsKey(MinecraftProfileTexture.Type.SKIN) && DefaultSkinHelper.getModel(entity.getProfile().getId()).equals("slim");
 
-            ModelPart model = slim ? slimPlayerModel : playerModel;
+            ModelPart model = slim ? slimRoot : defaultRoot;
             BipedModelWrapper wrapper = slim ? slimPlayerModelWrapper : playerModelWrapper;
 
             updateAngles(wrapper, entity);
             updatePlayerAngles(model, entity);
 
-            // Get texture from profile if it exists else fallback to default.
+            // Get texture from profile if it exists else fallback to default. Stolen from Skull.
             Identifier texture = map.containsKey(MinecraftProfileTexture.Type.SKIN) ?
                     MinecraftClient.getInstance().getSkinProvider().loadSkin(map.get(MinecraftProfileTexture.Type.SKIN), MinecraftProfileTexture.Type.SKIN) :
-                    DefaultSkinHelper.getTexture(PlayerEntity.getUuidFromProfile(entity.getProfile()));
+                    DefaultSkinHelper.getTexture(entity.getProfile().getId());
 
             RenderLayer renderLayer = RenderLayer.getEntityTranslucent(texture);
 
             model.render(matrices, vertexConsumers.getBuffer(renderLayer), light, overlay);
-        } else { // Render as rock
+        } else { // Render as block
             updateAngles(blockModelWrapper, entity);
 
             blockModel.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntityCutout(entity.getBlockTexture())), light, overlay);
@@ -123,10 +136,10 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
             updateAngles(armorModelWrapper, entity);
             updateAngles(legArmorModelWrapper, entity);
 
-            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.HEAD);
-            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.CHEST);
-            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.LEGS);
-            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.FEET);
+            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.HEAD, slim);
+            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.CHEST, slim);
+            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.LEGS, slim);
+            renderArmor(entity, matrices, vertexConsumers, light, EquipmentSlot.FEET, slim);
 
             renderHandItems(entity, matrices, vertexConsumers, light, overlay);
         }
@@ -176,8 +189,15 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
     }
 
     // Copied from ArmorFeatureRenderer.java (though modified and made worse)
-    void renderArmor(StatueBlockEntity entity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, EquipmentSlot slot) {
+    void renderArmor(StatueBlockEntity entity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, EquipmentSlot slot, boolean isSlim) {
         ItemStack itemStack = entity.getEquipment().get(slot.getEntitySlotId());
+        ArmorRenderer renderer = ArmorRendererRegistryImpl.get(itemStack.getItem());
+
+        if (renderer != null) {
+            renderer.render(matrices, vertexConsumers, itemStack, dummyPlayer, slot, light, isSlim ? slimPlayer : defaultPlayer);
+            return;
+        }
+
         if (itemStack.getItem() instanceof ArmorItem armorItem) {
             if (armorItem.getSlotType() == slot) {
                 ModelPart modelToRender = slot == EquipmentSlot.LEGS ? legArmorModel : armorModel;

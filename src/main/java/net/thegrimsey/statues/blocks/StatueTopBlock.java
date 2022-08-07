@@ -30,7 +30,7 @@ public class StatueTopBlock extends Block {
         return BlockRenderType.INVISIBLE;
     }
 
-    static final VoxelShape statueCuboid = VoxelShapes.cuboid(0, -1, 0, 1, 1, 1);
+    static final VoxelShape statueCuboid = VoxelShapes.cuboid(2/16d, -1, 2/16d, 14/16d, 1, 14/16d);
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
