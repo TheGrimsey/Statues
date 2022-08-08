@@ -31,7 +31,7 @@ public class Statues implements ModInitializer {
 
     // Blocks
     static final Material statueMaterial = new FabricMaterialBuilder(MapColor.STONE_GRAY).blocksPistons().lightPassesThrough().build();
-    static final AbstractBlock.Settings statueBlockSettings = FabricBlockSettings.of(statueMaterial).dropsNothing().requiresTool().requiresTool().strength(10.0f).nonOpaque();
+    static final AbstractBlock.Settings statueBlockSettings = FabricBlockSettings.of(statueMaterial).dropsNothing().requiresTool().requiresTool().strength(8.0f).nonOpaque();
 
     public static final StatueBlock STATUE_BLOCK = new StatueBlock(statueBlockSettings);
     public static final StatueTopBlock STATUE_TOP_BLOCK = new StatueTopBlock(statueBlockSettings);
