@@ -44,6 +44,7 @@ public class StatueNetworking {
         blockEntity.head.writeToBuffer(buf);
         // Body
         buf.writeFloat(blockEntity.yaw);
+        buf.writeFloat(blockEntity.scale);
 
         ClientPlayNetworking.send(EDIT_STATUE, buf);
     }

@@ -51,6 +51,9 @@ public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHand
     // Full body rotation.
     public float yaw = 0.f;
 
+    // Scale
+    public float scale = 1.0f;
+
     // Inventory
     final DefaultedList<ItemStack> equipment;
 
@@ -124,6 +127,8 @@ public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHand
 
         // FULL BODY
         yaw = nbt.getFloat("yaw");
+        if(nbt.contains("scale"))
+            scale = nbt.getFloat("scale");
 
         // INVENTORY
         readEquipment(nbt);
@@ -172,6 +177,7 @@ public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHand
 
         // FULL BODY
         nbt.putFloat("yaw", yaw);
+        nbt.putFloat("scale", scale);
 
         // INVENTORY
         writeEquipment(nbt);

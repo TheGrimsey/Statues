@@ -19,6 +19,7 @@ import net.thegrimsey.statues.StatueNetworking;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 import net.thegrimsey.statues.util.RotationSlider;
+import net.thegrimsey.statues.util.ScaleSlider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,8 +150,10 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
         sliderX = this.width / 2 - 30;
         sliderY = (this.height - backgroundHeight) / 2 + 137;
 
-        // Head Pitch
+        // Body Yaw
         sliders.add(addDrawableChild(new RotationSlider(sliderX, sliderY, 60, 20, "statues.yaw", aFloat -> blockEntity.yaw = (float) Math.toRadians(360 - aFloat))));
+
+        sliders.add(addDrawableChild(new ScaleSlider(sliderX, sliderY + 22, 60, 20, "statues.scale", aFloat -> blockEntity.scale = aFloat, Statues.MIN_STATUE_SCALE, Statues.MAX_STATUE_SCALE)));
     }
 
     @Override

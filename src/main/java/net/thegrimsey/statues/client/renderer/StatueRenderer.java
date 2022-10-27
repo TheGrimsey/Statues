@@ -93,13 +93,15 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
 
     @Override
     public void render(StatueBlockEntity entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        if(dummyPlayer == null) {
+        if(dummyPlayer == null) { // Technically this is stupid nad might break but... It normally shouldn't :bigthink:
             dummyPlayer = new ClientPlayerEntity(MinecraftClient.getInstance(), MinecraftClient.getInstance().world, MinecraftClient.getInstance().getNetworkHandler(), null, null, false, false);
         }
 
         float legLength = entity.getLegLength();
 
-        matrices.translate(0.5, 1.5 - (12.f / 16f) + (legLength / 16f), 0.5);
+        matrices.translate(0.5, 0.0f, 0.5);
+        matrices.scale(entity.scale, entity.scale, entity.scale);
+        matrices.translate(0.0, 1.5 - (12.f / 16f) + (legLength / 16f), 0.0);
         matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180.f));
         matrices.multiply(Vec3f.POSITIVE_Y.getRadialQuaternion(entity.yaw));
 

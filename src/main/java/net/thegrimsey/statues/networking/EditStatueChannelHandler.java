@@ -7,6 +7,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 import net.thegrimsey.statues.util.StatueRotation;
 
@@ -20,6 +22,7 @@ public class EditStatueChannelHandler implements ServerPlayNetworking.PlayChanne
         StatueRotation rightLeg;
         StatueRotation head;
         float yaw;
+        float scale;
         try {
             pos = buf.readBlockPos();
 
@@ -32,6 +35,7 @@ public class EditStatueChannelHandler implements ServerPlayNetworking.PlayChanne
             head = StatueRotation.fromBuffer(buf);
 
             yaw = buf.readFloat();
+            scale = buf.readFloat();
         } catch (IndexOutOfBoundsException exception) {
             exception.printStackTrace();
             return; // TODO log that this was an error in packet.
@@ -50,6 +54,7 @@ public class EditStatueChannelHandler implements ServerPlayNetworking.PlayChanne
                     blockEntity.head = head;
 
                     blockEntity.yaw = yaw;
+                    blockEntity.scale = MathHelper.clamp(scale, Statues.MIN_STATUE_SCALE, Statues.MAX_STATUE_SCALE);
 
                     blockEntity.markEditingFinished();
                     blockEntity.sync();

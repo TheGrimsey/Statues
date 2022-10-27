@@ -46,6 +46,9 @@ public class Statues implements ModInitializer {
     public static final ScreenHandlerType<StatueEquipmentScreenHandler> STATUE_EQUIPMENT_SCREENHANDLER = ScreenHandlerRegistry.registerExtended(new Identifier(MODID, "statue_equipment_screenhandler"), StatueEquipmentScreenHandler::new);
     public static final ScreenHandlerType<PaletteScreenHandler> PALETTE_SCREENHANDLER = ScreenHandlerRegistry.registerExtended(new Identifier(MODID, "palette_screenhandler"), PaletteScreenHandler::new);
 
+    // Bounds
+    public static float MIN_STATUE_SCALE = 0.25f, MAX_STATUE_SCALE = 1.3f;
+
     @Override
     public void onInitialize() {
         // Register Statue block.

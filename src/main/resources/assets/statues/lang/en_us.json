@@ -2,6 +2,7 @@
     "statues.pitch": "Pitch: %d",
     "statues.yaw": "Yaw: %d",
     "statues.roll": "Roll: %d",
+    "statues.scale": "Scale: %d",
 
     "item.statues.hammer": "Statue Hammer",
     "item.statues.palette": "Palette",
