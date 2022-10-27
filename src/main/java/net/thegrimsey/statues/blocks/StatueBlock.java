@@ -51,12 +51,17 @@ public class StatueBlock extends BlockWithEntity {
         return ActionResult.PASS;
     }
 
-    static final VoxelShape statueCuboid = VoxelShapes.cuboid(0, 0, 0, 1, 2, 1);
+    static final VoxelShape statueCuboid = VoxelShapes.cuboid(2/16d, 0, 2/16d, 14/16d, 2, 14/16d);
 
     @SuppressWarnings("deprecation")
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         return statueCuboid;
+    }
+
+    @Override
+    public VoxelShape getCullingShape(BlockState state, BlockView world, BlockPos pos) {
+        return super.getCullingShape(state, world, pos);
     }
 
     @Override

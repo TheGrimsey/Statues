@@ -8,5 +8,8 @@
     "item.statues.palette.lore": "§5Use on §ostatues§r§5 to paint them.",
 
     "statues.palette.name": "Player Name",
-    "statues.palette.button_done": "Done"
+    "statues.palette.button_done": "Done",
+
+    "block.statues.statue": "Statue",
+    "block.statues.statue_top": "Statue"
 }
