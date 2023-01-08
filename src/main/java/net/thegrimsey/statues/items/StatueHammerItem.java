@@ -1,6 +1,7 @@
 package net.thegrimsey.statues.items;
 
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -8,14 +9,15 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
@@ -43,7 +45,8 @@ public class StatueHammerItem extends Item {
     }
 
     public StatueHammerItem() {
-        super(new FabricItemSettings().maxCount(1).group(ItemGroup.DECORATIONS));
+        super(new FabricItemSettings().maxCount(1));
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> entries.add(this));
     }
 
     public ActionResult useOnBlock(ItemUsageContext context) {
@@ -62,7 +65,7 @@ public class StatueHammerItem extends Item {
             float yaw = (float) Math.toRadians((int) ((context.getPlayer().getYaw() + 180 + 45) % 360) / 90 * 90);
 
             if (world.getBlockEntity(context.getBlockPos()) instanceof StatueBlockEntity blockEntity) {
-                blockEntity.blockId = Registry.BLOCK.getId(state.getBlock());
+                blockEntity.blockId = Registries.BLOCK.getId(state.getBlock());
                 blockEntity.yaw = yaw;
             }
 

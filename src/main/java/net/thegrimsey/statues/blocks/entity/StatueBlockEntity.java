@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SkullBlockEntity;
@@ -19,6 +20,7 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -27,15 +29,14 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Quaternion;
-import net.minecraft.util.math.Vec3f;
-import net.minecraft.util.registry.Registry;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.client.renderer.StatueRenderer;
 import net.thegrimsey.statues.client.screen.StatueEquipmentScreenHandler;
 import net.thegrimsey.statues.util.StatueRotation;
 import org.jetbrains.annotations.Nullable;
+import org.joml.*;
 
+import java.lang.Math;
 import java.util.UUID;
 
 public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, Inventory {
@@ -96,17 +97,23 @@ public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHand
     public void updateCache() {
         hasEquipment = equipment.stream().anyMatch(itemStack -> !itemStack.isEmpty());
 
-        // LEFT LEG
-        Quaternion leftLegRot = new Quaternion(leftLeg.pitch, leftLeg.yaw, leftLeg.roll, false);
-        Vec3f down = Vec3f.NEGATIVE_Y.copy();
+        // LEFT LEG leftLeg.pitch, leftLeg.yaw, leftLeg.roll, false
+        Quaternionf leftLegRot = new Quaternionf();
+        leftLegRot.rotateAxis(leftLeg.pitch, 0.0f, 0.0f, 1.0f);
+        leftLegRot.rotateAxis(leftLeg.yaw, 0.0f, 1.0f, 0.0f);
+        leftLegRot.rotateAxis(leftLeg.roll, 1.0f, 0.0f, 0.0f);
+        Vector3f down = new Vector3f(0.0f, -1.0f, 0.0f);
         down.rotate(leftLegRot);
-        float leftDot = down.dot(Vec3f.NEGATIVE_Y);
+        float leftDot = down.dot(0.0f, -1.0f, 0.0f);
 
-        // RIGHT LEG
-        Quaternion rightLegRot = new Quaternion(rightLeg.pitch, rightLeg.yaw, rightLeg.roll, false);
-        down.set(Vec3f.NEGATIVE_Y);
+        // RIGHT LEG rightLeg.pitch, rightLeg.yaw, rightLeg.roll,
+        Quaternionf rightLegRot = new Quaternionf();
+        rightLegRot.rotateAxis(rightLeg.pitch, 0.0f, 0.0f, 1.0f);
+        rightLegRot.rotateAxis(rightLeg.yaw, 0.0f, 1.0f, 0.0f);
+        rightLegRot.rotateAxis(rightLeg.roll, 1.0f, 0.0f, 0.0f);
+        down.set(0.0f, -1.0f, 0.0f);
         down.rotate(rightLegRot);
-        float rightDot = down.dot(Vec3f.NEGATIVE_Y);
+        float rightDot = down.dot(0.0f, -1.0f, 0.0f);
 
         // Straightest leg is base.
         legLength = Math.max(StatueRenderer.LEG_LENGTH * Math.max(leftDot, rightDot), 0.0F);
@@ -133,7 +140,7 @@ public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHand
         // INVENTORY
         readEquipment(nbt);
 
-        if(net.fabricmc.loader.api.FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+        if(FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             if (nbt.containsUuid("profileUUID")) {
                 UUID newUUID = nbt.getUuid("profileUUID");
 
@@ -145,7 +152,7 @@ public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHand
                 }
             } else {
                 blockId = new Identifier(nbt.getString("textureNamespace"), nbt.getString("texturePath"));
-                Identifier spriteId = MinecraftClient.getInstance().getBlockRenderManager().getModel(Registry.BLOCK.get(blockId).getDefaultState()).getParticleSprite().getId();
+                Identifier spriteId = MinecraftClient.getInstance().getBlockRenderManager().getModel(Registries.BLOCK.get(blockId).getDefaultState()).getParticleSprite().getContents().getId();
 
                 blockTexture = new Identifier(spriteId.getNamespace(), "textures/" + spriteId.getPath() + ".png");
             }

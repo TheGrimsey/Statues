@@ -37,13 +37,12 @@ public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
         textX = (this.backgroundWidth - textRenderer.getWidth(renderText)) / 2.f;
         textY = this.backgroundHeight / 2.f - 15 - textRenderer.fontHeight;
 
-        client.keyboard.setRepeatEvents(true);
 
         textFieldWidget = addDrawableChild(new TextFieldWidget(textRenderer, this.width / 2 - 75, this.height / 2 - 10, 150, 20, Text.of("")));
         textFieldWidget.setMaxLength(16);
 
-        // Done button
-        addDrawableChild(new ButtonWidget(this.width / 2 - 75, this.height / 2 + 15, 150, 20, Text.translatable("statues.palette.button_done"), button -> {
+        // Done button this.width / 2 - 75, this.height / 2 + 15, 150, 20,
+        addDrawableChild(ButtonWidget.builder(Text.translatable("statues.palette.button_done"), button -> {
             // Send.
             if(textFieldWidget.getText().isBlank() || textFieldWidget.getText().isEmpty()) {
                 close();
@@ -56,7 +55,7 @@ public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
 
                 close();
             });
-        }));
+        }).dimensions(this.width / 2 - 75, this.height / 2 + 15, 150, 20).build());
     }
 
     @Override

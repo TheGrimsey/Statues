@@ -26,10 +26,9 @@ import net.minecraft.item.ArmorItem;
 import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Quaternion;
-import net.minecraft.util.math.Vec3f;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 import net.thegrimsey.statues.util.BipedModelWrapper;
+import org.joml.Quaternionf;
 
 import java.util.Map;
 
@@ -102,8 +101,8 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
         matrices.translate(0.5, 0.0f, 0.5);
         matrices.scale(entity.scale, entity.scale, entity.scale);
         matrices.translate(0.0, 1.5 - (12.f / 16f) + (legLength / 16f), 0.0);
-        matrices.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(180.f));
-        matrices.multiply(Vec3f.POSITIVE_Y.getRadialQuaternion(entity.yaw));
+        matrices.multiply(new Quaternionf().rotateX((float) Math.toRadians(180.f)));
+        matrices.multiply(new Quaternionf().rotateY(entity.yaw));
 
         boolean slim = false;
 
@@ -168,8 +167,8 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
 
     void renderHandItems(StatueBlockEntity entity, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
 
-        Quaternion quaternion = Vec3f.POSITIVE_X.getDegreesQuaternion(-90.0F);
-        Quaternion quaternion1 = Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F);
+        Quaternionf quaternion = new Quaternionf().rotateX((float) Math.toRadians(-90.0F));
+        Quaternionf quaternion1 = new Quaternionf().rotateY((float) Math.toRadians(180.0F));
         {
             matrices.push();
             legArmorModelWrapper.leftArmModel.rotate(matrices); // Rotating using legArmorModel because it is always updated.

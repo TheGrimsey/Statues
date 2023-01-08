@@ -6,11 +6,11 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextParameters;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
@@ -76,7 +76,7 @@ public class StatueBlock extends BlockWithEntity {
 
         if (builder.get(LootContextParameters.BLOCK_ENTITY) instanceof StatueBlockEntity statueBlockEntity) {
             if(statueBlockEntity.blockId != null) {
-                BlockState defaultState = Registry.BLOCK.get(statueBlockEntity.blockId).getDefaultState();
+                BlockState defaultState = Registries.BLOCK.get(statueBlockEntity.blockId).getDefaultState();
                 // Check if we can break the block and if so drop it.
                 if(builder.get(LootContextParameters.TOOL).isSuitableFor(defaultState) || !defaultState.isToolRequired()) {
                     drops.addAll(defaultState.getDroppedStacks(builder));

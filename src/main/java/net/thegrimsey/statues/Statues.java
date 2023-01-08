@@ -10,10 +10,11 @@ import net.minecraft.block.Block;
 import net.minecraft.block.MapColor;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import net.thegrimsey.statues.blocks.StatueBlock;
 import net.thegrimsey.statues.blocks.StatueTopBlock;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
@@ -27,7 +28,7 @@ public class Statues implements ModInitializer {
     public static final String MODID = "statues";
 
     // Tags
-    public static final TagKey<Block> NOT_STATUABLE_TAG = TagKey.of(Registry.BLOCK_KEY, new Identifier(MODID, "not_statuable")); // Blocks you can't turn into a statue.
+    public static final TagKey<Block> NOT_STATUABLE_TAG = TagKey.of(Registries.BLOCK.getKey(), new Identifier(MODID, "not_statuable")); // Blocks you can't turn into a statue.
 
     // Blocks
     static final Material statueMaterial = new FabricMaterialBuilder(MapColor.STONE_GRAY).blocksPistons().lightPassesThrough().build();
@@ -52,14 +53,14 @@ public class Statues implements ModInitializer {
     @Override
     public void onInitialize() {
         // Register Statue block.
-        Registry.register(Registry.BLOCK, new Identifier(MODID, "statue"), STATUE_BLOCK);
-        STATUE_BLOCKENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(MODID, "statue_blockentity"), FabricBlockEntityTypeBuilder.create(StatueBlockEntity::new, STATUE_BLOCK).build(null));
+        Registry.register(Registries.BLOCK, new Identifier(MODID, "statue"), STATUE_BLOCK);
+        STATUE_BLOCKENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, new Identifier(MODID, "statue_blockentity"), FabricBlockEntityTypeBuilder.create(StatueBlockEntity::new, STATUE_BLOCK).build(null));
 
-        Registry.register(Registry.BLOCK, new Identifier(MODID, "statue_top"), STATUE_TOP_BLOCK);
+        Registry.register(Registries.BLOCK, new Identifier(MODID, "statue_top"), STATUE_TOP_BLOCK);
 
         // Register palette item.
-        Registry.register(Registry.ITEM, new Identifier(MODID, "palette"), PALETTE_ITEM);
-        Registry.register(Registry.ITEM, new Identifier(MODID, "hammer"), HAMMER_ITEM);
+        Registry.register(Registries.ITEM, new Identifier(MODID, "palette"), PALETTE_ITEM);
+        Registry.register(Registries.ITEM, new Identifier(MODID, "hammer"), HAMMER_ITEM);
 
         StatueNetworking.registerNetworking();
     }

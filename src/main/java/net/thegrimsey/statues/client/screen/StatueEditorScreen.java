@@ -13,13 +13,12 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Quaternion;
-import net.minecraft.util.math.Vec3f;
 import net.thegrimsey.statues.StatueNetworking;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
 import net.thegrimsey.statues.util.RotationSlider;
 import net.thegrimsey.statues.util.ScaleSlider;
+import org.joml.Quaternionf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,8 +65,8 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
         MatrixStack matrixStack2 = new MatrixStack();
         matrixStack2.translate(0.0D, 0.0D, 1000.0D);
         matrixStack2.scale((float) 35, (float) 35, (float) 35);
-        Quaternion quaternion = Vec3f.POSITIVE_Z.getDegreesQuaternion(180.0F);
-        Quaternion quaternion2 = Vec3f.POSITIVE_Y.getDegreesQuaternion(180.0F);
+        Quaternionf quaternion = new Quaternionf().rotateZ((float) Math.toRadians(180.0F));
+        Quaternionf quaternion2 = new Quaternionf().rotateY((float) Math.toRadians(180.0F));
         matrixStack2.multiply(quaternion);
         matrixStack2.multiply(quaternion2);
 
