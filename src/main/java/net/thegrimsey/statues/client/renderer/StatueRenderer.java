@@ -15,9 +15,12 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.entity.model.*;
+import net.minecraft.client.render.entity.model.BipedEntityModel;
+import net.minecraft.client.render.entity.model.EntityModelLayers;
+import net.minecraft.client.render.entity.model.EntityModelLoader;
+import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.render.model.json.ModelTransformation;
+import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EquipmentSlot;
@@ -175,7 +178,7 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
             matrices.multiply(quaternion);
             matrices.multiply(quaternion1);
             matrices.translate(-1.0F / 16.0F, 0.125D, -0.625D);
-            MinecraftClient.getInstance().getItemRenderer().renderItem(null, entity.getStack(4), ModelTransformation.Mode.THIRD_PERSON_LEFT_HAND, true, matrices, vertexConsumers, entity.getWorld(), light, overlay, 0);
+            MinecraftClient.getInstance().getItemRenderer().renderItem(null, entity.getStack(4), ModelTransformationMode.THIRD_PERSON_LEFT_HAND, true, matrices, vertexConsumers, entity.getWorld(), light, overlay, 0);
             matrices.pop();
         }
         {
@@ -184,7 +187,7 @@ public class StatueRenderer implements BlockEntityRenderer<StatueBlockEntity> {
             matrices.multiply(quaternion);
             matrices.multiply(quaternion1);
             matrices.translate(1.0F / 16.0F, 0.125D, -0.625D);
-            MinecraftClient.getInstance().getItemRenderer().renderItem(null, entity.getStack(5), ModelTransformation.Mode.THIRD_PERSON_RIGHT_HAND, false, matrices, vertexConsumers, entity.getWorld(), light, overlay, 0);
+            MinecraftClient.getInstance().getItemRenderer().renderItem(null, entity.getStack(5), ModelTransformationMode.THIRD_PERSON_RIGHT_HAND, false, matrices, vertexConsumers, entity.getWorld(), light, overlay, 0);
             matrices.pop();
         }
     }

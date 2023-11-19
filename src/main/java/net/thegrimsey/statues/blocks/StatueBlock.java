@@ -5,6 +5,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.context.LootContext;
+import net.minecraft.loot.context.LootContextParameterSet;
 import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.ActionResult;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class StatueBlock extends BlockWithEntity {
     public StatueBlock(Settings settings) {
@@ -60,18 +62,27 @@ public class StatueBlock extends BlockWithEntity {
     }
 
     @Override
-    public VoxelShape getCullingShape(BlockState state, BlockView world, BlockPos pos) {
-        return super.getCullingShape(state, world, pos);
-    }
-
-    @Override
     public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         super.onBreak(world, pos, state, player);
         world.setBlockState(pos.up(), Blocks.AIR.getDefaultState());
     }
 
     @Override
-    public List<ItemStack> getDroppedStacks(BlockState state, LootContext.Builder builder) {
+    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+
+        if(blockEntity instanceof StatueBlockEntity statueBlockEntity) {
+            Optional<Block> statueBlock = Registries.BLOCK.getOrEmpty(statueBlockEntity.blockId);
+            if(statueBlock.isPresent()) {
+                return statueBlock.get().calcBlockBreakingDelta(statueBlock.get().getDefaultState(), player, world, pos);
+            }
+        }
+
+        return super.calcBlockBreakingDelta(state, player, world, pos);
+    }
+
+    @Override
+    public List<ItemStack> getDroppedStacks(BlockState state, LootContextParameterSet.Builder builder) {
         List<ItemStack> drops = new ArrayList<>();
 
         if (builder.get(LootContextParameters.BLOCK_ENTITY) instanceof StatueBlockEntity statueBlockEntity) {

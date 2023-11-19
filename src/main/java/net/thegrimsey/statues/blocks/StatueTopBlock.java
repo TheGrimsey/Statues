@@ -1,7 +1,9 @@
 package net.thegrimsey.statues.blocks;
 
 import net.minecraft.block.*;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -12,6 +14,8 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.thegrimsey.statues.Statues;
 import net.thegrimsey.statues.blocks.entity.StatueBlockEntity;
+
+import java.util.Optional;
 
 @SuppressWarnings("deprecation")
 public class StatueTopBlock extends Block {
@@ -48,5 +52,19 @@ public class StatueTopBlock extends Block {
         }
 
         return ActionResult.PASS;
+    }
+
+    @Override
+    public float calcBlockBreakingDelta(BlockState state, PlayerEntity player, BlockView world, BlockPos pos) {
+        BlockEntity blockEntity = world.getBlockEntity(pos.down());
+
+        if(blockEntity instanceof StatueBlockEntity statueBlockEntity) {
+            Optional<Block> statueBlock = Registries.BLOCK.getOrEmpty(statueBlockEntity.blockId);
+            if(statueBlock.isPresent()) {
+                return statueBlock.get().calcBlockBreakingDelta(statueBlock.get().getDefaultState(), player, world, pos);
+            }
+        }
+
+        return super.calcBlockBreakingDelta(state, player, world, pos);
     }
 }

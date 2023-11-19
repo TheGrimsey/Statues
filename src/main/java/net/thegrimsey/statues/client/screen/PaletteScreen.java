@@ -2,6 +2,7 @@ package net.thegrimsey.statues.client.screen;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.block.entity.SkullBlockEntity;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -21,15 +22,14 @@ public class PaletteScreen extends HandledScreen<PaletteScreenHandler> {
     }
 
     @Override
-    protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
-        renderBackground(matrices, 0);
+    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
+        super.renderBackground(context);
     }
 
     @Override
-    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-        textRenderer.drawWithShadow(matrices, renderText, textX, textY, 16777215);
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+        context.drawText(textRenderer, renderText, (int)textX, (int)textY, 16777215, true);
     }
-
     @Override
     protected void init() {
         super.init();

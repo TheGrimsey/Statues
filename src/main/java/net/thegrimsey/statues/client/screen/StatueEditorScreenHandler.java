@@ -30,7 +30,7 @@ public class StatueEditorScreenHandler extends ScreenHandler {
     public StatueEditorScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
         super(Statues.STATUE_SCREENHANDLER, syncId);
 
-        context = ScreenHandlerContext.create(playerInventory.player.world, pos);
+        context = ScreenHandlerContext.create(playerInventory.player.getWorld(), pos);
     }
 
     @Override

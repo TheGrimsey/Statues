@@ -24,7 +24,7 @@ public class PaletteScreenHandler extends ScreenHandler {
     public PaletteScreenHandler(int syncId, PlayerInventory playerInventory, BlockPos pos) {
         super(Statues.PALETTE_SCREENHANDLER, syncId);
 
-        context = ScreenHandlerContext.create(playerInventory.player.world, pos);
+        context = ScreenHandlerContext.create(playerInventory.player.getWorld(), pos);
     }
 
     @Override

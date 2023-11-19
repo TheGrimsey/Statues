@@ -2,6 +2,7 @@ package net.thegrimsey.statues.client.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.client.render.DiffuseLighting;
@@ -41,18 +42,17 @@ public class StatueEditorScreen extends HandledScreen<StatueEditorScreenHandler>
     }
 
     @Override
-    protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
-        renderBackground(matrices, 0);
+    protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
+        super.renderBackground(context);
 
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        drawTexture(matrices, x, y, 0, 0, backgroundWidth, backgroundHeight, backgroundWidth, backgroundHeight);
+        context.drawTexture(TEXTURE, x, y, 0, 0, backgroundWidth, backgroundHeight, backgroundWidth, backgroundHeight);
 
         drawStatue(this.width / 2 - 18, this.height / 2 + 24);
+
     }
 
     @Override
-    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-    }
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {}
 
     // Based on InventoryScreen::DrawEntity
     void drawStatue(int x, int y) {
