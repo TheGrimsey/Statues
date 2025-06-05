@@ -61,13 +61,9 @@ public class StatueBlockEntity extends BlockEntity implements ExtendedScreenHand
     public Identifier blockId = new Identifier("minecraft", "stone");
     UUID profileId;
 
-    @Environment(EnvType.CLIENT)
-    GameProfile profile = null;
-    @Environment(EnvType.CLIENT)
+    GameProfile profile;
     float legLength;
-    @Environment(EnvType.CLIENT)
-    boolean hasEquipment = false;
-    @Environment(EnvType.CLIENT)
+    boolean hasEquipment;
     public Identifier blockTexture = new Identifier("minecraft", "textures/block/stone.png");
 
     boolean finishedEditing = false;
